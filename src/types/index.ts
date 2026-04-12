@@ -7,7 +7,7 @@ export interface Shareholder {
   address: string;
   profileImage: string;
   bookingDate: string;
-  totalShare: number; // 550000
+  totalShare: number;
   totalPaid: number;
   status: 'booked' | 'partial' | 'fully_paid';
   createdAt: string;
@@ -51,3 +51,4 @@ export interface Activity {
 export const TOTAL_SHARE_AMOUNT = 550000;
 export const MAX_BOOKING_AMOUNT = 50000;
 export const TARGET_SHAREHOLDERS = 91;
+export const TOTAL_LAND_COST = 45500000; // ৪ কোটি ৫৫ লক্ষ টাকা
