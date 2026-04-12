@@ -1,8 +1,10 @@
-import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote } from 'lucide-react';
+import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { TARGET_SHAREHOLDERS, TOTAL_SHARE_AMOUNT } from '@/types';
+import { TARGET_SHAREHOLDERS, TOTAL_SHARE_AMOUNT, TOTAL_LAND_COST } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function Dashboard() {
@@ -16,6 +18,10 @@ export default function Dashboard() {
   const remaining = totalExpected - totalCollected;
   const remainingMembers = TARGET_SHAREHOLDERS - totalShareholders;
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  // Land cost tracking
+  const landCollected = totalShareholders * TOTAL_SHARE_AMOUNT; // potential from joined members
+  const landRemaining = TOTAL_LAND_COST - totalCollected;
 
   const stats = [
     { label: 'Total Shareholders', value: totalShareholders, target: `/ ${TARGET_SHAREHOLDERS}`, icon: Users, color: 'text-primary' },
@@ -113,6 +119,33 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Land Cost Tracking */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">🏞️ জমির মূল্য পরিশোধ</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground">মোট মূল্য</p>
+              <p className="text-lg font-bold text-card-foreground">৳{(TOTAL_LAND_COST / 100000).toFixed(1)}L</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground">সংগৃহীত</p>
+              <p className="text-lg font-bold text-success">৳{(totalCollected / 100000).toFixed(1)}L</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground">বাকি</p>
+              <p className="text-lg font-bold text-destructive">৳{(Math.max(0, landRemaining) / 100000).toFixed(1)}L</p>
+            </div>
+          </div>
+          <Progress value={(totalCollected / TOTAL_LAND_COST) * 100} className="h-2" />
+          <p className="text-xs text-muted-foreground text-center">
+            {Math.round((totalCollected / TOTAL_LAND_COST) * 100)}% পরিশোধিত
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Expense Summary */}
       <Card className="shadow-card">
         <CardContent className="p-4 flex items-center justify-between">
@@ -126,6 +159,16 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Quick Links */}
+      <div className="flex flex-wrap gap-3">
+        <Link to="/project">
+          <Button variant="outline" className="gap-2"><FileText className="w-4 h-4" /> Project Details</Button>
+        </Link>
+        <Link to="/directors">
+          <Button variant="outline" className="gap-2"><UserCheck className="w-4 h-4" /> Directors</Button>
+        </Link>
+      </div>
     </div>
   );
 }
