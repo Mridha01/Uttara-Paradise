@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2 } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +10,8 @@ const navItems = [
   { to: '/payments', icon: CreditCard, label: 'Payments' },
   { to: '/expenses', icon: Receipt, label: 'Expenses' },
   { to: '/notifications', icon: Bell, label: 'Notifications' },
+  { to: '/project', icon: FileText, label: 'Project Details' },
+  { to: '/directors', icon: UserCheck, label: 'Directors' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
