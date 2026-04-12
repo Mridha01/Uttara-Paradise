@@ -1,0 +1,108 @@
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Phone, MapPin, Calendar, CreditCard } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { TOTAL_SHARE_AMOUNT } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+
+export default function ShareholderDetail() {
+  const { id } = useParams<{ id: string }>();
+  const { getShareholder, getShareholderPayments } = useApp();
+
+  const shareholder = getShareholder(id!);
+  const payments = getShareholderPayments(id!);
+
+  if (!shareholder) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Shareholder not found</p>
+        <Link to="/shareholders" className="text-primary underline text-sm mt-2 inline-block">← Back to list</Link>
+      </div>
+    );
+  }
+
+  const due = TOTAL_SHARE_AMOUNT - shareholder.totalPaid;
+  const progress = (shareholder.totalPaid / TOTAL_SHARE_AMOUNT) * 100;
+
+  return (
+    <div className="space-y-4">
+      <Link to="/shareholders" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="w-4 h-4" /> Back to Shareholders
+      </Link>
+
+      <Card className="shadow-card">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-2xl flex-shrink-0">
+              {shareholder.name.charAt(0)}
+            </div>
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-card-foreground">{shareholder.name}</h1>
+              <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" />{shareholder.phone}</span>
+                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{shareholder.address || 'N/A'}</span>
+                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{shareholder.bookingDate}</span>
+              </div>
+            </div>
+            <Badge variant={shareholder.status === 'fully_paid' ? 'default' : 'secondary'} className={shareholder.status === 'fully_paid' ? 'bg-success' : ''}>
+              {shareholder.status === 'fully_paid' ? 'Fully Paid' : shareholder.status === 'partial' ? 'Partial' : 'Booked'}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Card className="shadow-card">
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Total Share</p>
+            <p className="text-lg font-bold text-card-foreground">৳{TOTAL_SHARE_AMOUNT.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Total Paid</p>
+            <p className="text-lg font-bold text-success">৳{shareholder.totalPaid.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Due Amount</p>
+            <p className="text-lg font-bold text-destructive">৳{due.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Progress value={progress} className="h-2" />
+
+      <Card className="shadow-card">
+        <CardHeader className="pb-2"><CardTitle className="text-base">Payment History</CardTitle></CardHeader>
+        <CardContent>
+          {payments.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No payments yet</p>
+          ) : (
+            <div className="space-y-3">
+              {payments.map(p => (
+                <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3">
+                    <CreditCard className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-card-foreground">৳{p.amount.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{p.date}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'Booking' : 'Remaining'}</Badge>
+                    {p.screenshotUrl && (
+                      <a href={p.screenshotUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">Receipt</a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
