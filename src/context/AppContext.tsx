@@ -2,16 +2,12 @@ import React, { createContext, useContext, useState, useCallback, ReactNode } fr
 import { Shareholder, Payment, Expense, Notification, Activity, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
 import { mockShareholders, mockPayments, mockExpenses, mockNotifications, mockActivities } from '@/data/mockData';
 
-interface AppState {
+interface AppContextType {
   shareholders: Shareholder[];
   payments: Payment[];
   expenses: Expense[];
   notifications: Notification[];
   activities: Activity[];
-  currentRole: 'admin' | 'shareholder' | 'director';
-}
-
-interface AppContextType extends AppState {
   addShareholder: (s: Omit<Shareholder, 'id' | 'totalPaid' | 'status' | 'createdAt'>) => void;
   updateShareholder: (id: string, s: Partial<Shareholder>) => void;
   addPayment: (p: Omit<Payment, 'id' | 'createdAt'>) => void;
@@ -22,7 +18,6 @@ interface AppContextType extends AppState {
   markAllNotificationsRead: () => void;
   getShareholderPayments: (id: string) => Payment[];
   getShareholder: (id: string) => Shareholder | undefined;
-  setRole: (role: AppState['currentRole']) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -33,7 +28,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [activities, setActivities] = useState<Activity[]>(mockActivities);
-  const [currentRole, setCurrentRole] = useState<AppState['currentRole']>('admin');
 
   const addNotification = useCallback((message: string, type: Notification['type']) => {
     const n: Notification = { id: `n${Date.now()}`, message, type, read: false, createdAt: new Date().toISOString() };
@@ -46,13 +40,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addShareholder = useCallback((s: Omit<Shareholder, 'id' | 'totalPaid' | 'status' | 'createdAt'>) => {
-    const newS: Shareholder = {
-      ...s,
-      id: `s${Date.now()}`,
-      totalPaid: 0,
-      status: 'booked',
-      createdAt: new Date().toISOString(),
-    };
+    const newS: Shareholder = { ...s, id: `s${Date.now()}`, totalPaid: 0, status: 'booked', createdAt: new Date().toISOString() };
     setShareholders(prev => [...prev, newS]);
     addNotification(`New shareholder: ${s.name}`, 'shareholder');
     addActivity(`${s.name} added as shareholder`, 'shareholder');
@@ -65,7 +53,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addPayment = useCallback((p: Omit<Payment, 'id' | 'createdAt'>) => {
     const shareholder = shareholders.find(s => s.id === p.shareholderId);
     if (!shareholder) return;
-
     if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT) return;
     if (shareholder.totalPaid + p.amount > TOTAL_SHARE_AMOUNT) return;
 
@@ -127,10 +114,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      shareholders, payments, expenses, notifications, activities, currentRole,
+      shareholders, payments, expenses, notifications, activities,
       addShareholder, updateShareholder, deleteShareholder, addPayment, deletePayment, addExpense,
       markNotificationRead, markAllNotificationsRead,
-      getShareholderPayments, getShareholder, setRole: setCurrentRole,
+      getShareholderPayments, getShareholder,
     }}>
       {children}
     </AppContext.Provider>
