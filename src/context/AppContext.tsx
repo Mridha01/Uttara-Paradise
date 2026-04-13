@@ -128,7 +128,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       shareholders, payments, expenses, notifications, activities, currentRole,
-      addShareholder, updateShareholder, addPayment, addExpense,
+      addShareholder, updateShareholder, deleteShareholder, addPayment, deletePayment, addExpense,
       markNotificationRead, markAllNotificationsRead,
       getShareholderPayments, getShareholder, setRole: setCurrentRole,
     }}>
