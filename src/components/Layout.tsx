@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck, LogIn, LogOut } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -17,17 +19,17 @@ const navItems = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { notifications, currentRole, setRole } = useApp();
+  const navigate = useNavigate();
+  const { notifications } = useApp();
+  const { isAdmin, signOut, user } = useAuth();
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-50 w-64 gradient-hero flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -37,8 +39,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Building2 className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">ShareTrack</h1>
-            <p className="text-xs text-sidebar-foreground/60">Real Estate Shares</p>
+            <h1 className="text-lg font-bold text-sidebar-foreground">Uttara Vilas</h1>
+            <p className="text-xs text-sidebar-foreground/60">Share Management</p>
           </div>
           <button className="ml-auto lg:hidden text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
             <X className="w-5 h-5" />
@@ -73,26 +75,42 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="px-3 py-4 border-t border-sidebar-border">
-          <label className="text-xs text-sidebar-foreground/50 px-3 mb-2 block">Role</label>
-          <select
-            value={currentRole}
-            onChange={e => setRole(e.target.value as any)}
-            className="w-full px-3 py-2 rounded-lg bg-sidebar-accent text-sidebar-foreground text-sm border-0 outline-none"
-          >
-            <option value="admin">Admin</option>
-            <option value="director">Director</option>
-            <option value="shareholder">Shareholder</option>
-          </select>
+          {isAdmin ? (
+            <div className="space-y-2">
+              <p className="text-xs text-sidebar-foreground/50 px-3 truncate">
+                {user?.email}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                onClick={async () => { await signOut(); navigate('/'); }}
+              >
+                <LogOut className="w-4 h-4" /> Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              onClick={() => navigate('/login')}
+            >
+              <LogIn className="w-4 h-4" /> Admin Login
+            </Button>
+          )}
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 min-h-screen">
         <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border px-4 lg:px-6 py-3 flex items-center gap-4">
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex-1" />
+          {isAdmin && (
+            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">Admin</span>
+          )}
           <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
             <Bell className="w-5 h-5 text-muted-foreground" />
             {unreadCount > 0 && (
