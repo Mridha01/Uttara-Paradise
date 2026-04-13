@@ -15,7 +15,9 @@ interface AppContextType extends AppState {
   addShareholder: (s: Omit<Shareholder, 'id' | 'totalPaid' | 'status' | 'createdAt'>) => void;
   updateShareholder: (id: string, s: Partial<Shareholder>) => void;
   addPayment: (p: Omit<Payment, 'id' | 'createdAt'>) => void;
+  deletePayment: (id: string) => void;
   addExpense: (e: Omit<Expense, 'id' | 'createdAt'>) => void;
+  deleteShareholder: (id: string) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   getShareholderPayments: (id: string) => Payment[];
@@ -85,6 +87,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addActivity(`${e.title} expense added ৳${e.amount.toLocaleString()}`, 'expense');
   }, [addNotification, addActivity]);
 
+  const deleteShareholder = useCallback((id: string) => {
+    setShareholders(prev => prev.filter(s => s.id !== id));
+    setPayments(prev => prev.filter(p => p.shareholderId !== id));
+    addNotification('Shareholder removed', 'shareholder');
+    addActivity('Shareholder removed', 'shareholder');
+  }, [addNotification, addActivity]);
+
+  const deletePayment = useCallback((id: string) => {
+    const payment = payments.find(p => p.id === id);
+    if (payment) {
+      const sh = shareholders.find(s => s.id === payment.shareholderId);
+      if (sh) {
+        const newTotalPaid = Math.max(0, sh.totalPaid - payment.amount);
+        const newStatus = newTotalPaid >= TOTAL_SHARE_AMOUNT ? 'fully_paid' : newTotalPaid > 0 ? 'partial' : 'booked';
+        setShareholders(prev => prev.map(s => s.id === payment.shareholderId ? { ...s, totalPaid: newTotalPaid, status: newStatus } : s));
+      }
+    }
+    setPayments(prev => prev.filter(p => p.id !== id));
+    addNotification('Payment deleted', 'payment');
+    addActivity('Payment record removed', 'payment');
+  }, [payments, shareholders, addNotification, addActivity]);
+
   const markNotificationRead = useCallback((id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   }, []);
@@ -104,7 +128,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       shareholders, payments, expenses, notifications, activities, currentRole,
-      addShareholder, updateShareholder, addPayment, addExpense,
+      addShareholder, updateShareholder, deleteShareholder, addPayment, deletePayment, addExpense,
       markNotificationRead, markAllNotificationsRead,
       getShareholderPayments, getShareholder, setRole: setCurrentRole,
     }}>

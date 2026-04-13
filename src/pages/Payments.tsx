@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Upload, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Upload, Image as ImageIcon, X, Search, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,11 +10,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function Payments() {
-  const { shareholders, payments, addPayment, currentRole } = useApp();
+  const { shareholders, payments, addPayment, deletePayment, currentRole } = useApp();
   const isAdmin = currentRole === 'admin' || currentRole === 'director';
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [detailPayment, setDetailPayment] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   const [selectedShareholder, setSelectedShareholder] = useState('');
   const [amount, setAmount] = useState('');
   const [paymentType, setPaymentType] = useState<'booking' | 'remaining'>('booking');
@@ -28,7 +41,7 @@ export default function Payments() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    setScreenshot(url); // In production, upload to storage
+    setScreenshot(url);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,21 +50,17 @@ export default function Payments() {
       toast.error('Please fill all fields and upload screenshot');
       return;
     }
-
     const numAmount = Number(amount);
     const sh = shareholders.find(s => s.id === selectedShareholder);
     if (!sh) return;
-
     if (paymentType === 'booking' && numAmount > MAX_BOOKING_AMOUNT) {
       toast.error(`Booking payment max is ৳${MAX_BOOKING_AMOUNT.toLocaleString()}`);
       return;
     }
-
     if (sh.totalPaid + numAmount > TOTAL_SHARE_AMOUNT) {
       toast.error(`Total payment cannot exceed ৳${TOTAL_SHARE_AMOUNT.toLocaleString()}`);
       return;
     }
-
     addPayment({ shareholderId: selectedShareholder, amount: numAmount, date, type: paymentType, screenshotUrl: screenshot });
     setSelectedShareholder('');
     setAmount('');
@@ -61,7 +70,24 @@ export default function Payments() {
     toast.success('Payment added successfully! ✅');
   };
 
-  const sortedPayments = [...payments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sortedPayments = [...payments]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .filter(p => {
+      if (!search) return true;
+      const sh = shareholders.find(s => s.id === p.shareholderId);
+      const q = search.toLowerCase();
+      return sh?.name.toLowerCase().includes(q) || sh?.phone.includes(q) || p.amount.toString().includes(q);
+    });
+
+  const handleDelete = () => {
+    if (!deleteId) return;
+    deletePayment(deleteId);
+    setDeleteId(null);
+    toast.success('Payment deleted!');
+  };
+
+  const detail = payments.find(p => p.id === detailPayment);
+  const detailSh = detail ? shareholders.find(s => s.id === detail.shareholderId) : null;
 
   return (
     <div className="space-y-4">
@@ -115,11 +141,7 @@ export default function Payments() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      className="mt-2 w-full border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                    >
+                    <button type="button" onClick={() => fileRef.current?.click()} className="mt-2 w-full border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                       <Upload className="w-8 h-8" />
                       <span className="text-sm">Upload screenshot</span>
                     </button>
@@ -130,6 +152,11 @@ export default function Payments() {
             </DialogContent>
           </Dialog>
         )}
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input className="pl-9" placeholder="Search by name, phone or amount..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -151,10 +178,16 @@ export default function Payments() {
         <CardHeader className="pb-2"><CardTitle className="text-base">Payment History</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-3">
+            {sortedPayments.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No payments found</p>}
             {sortedPayments.map((p, i) => {
               const sh = shareholders.find(s => s.id === p.shareholderId);
               return (
-                <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 animate-fade-in" style={{ animationDelay: `${i * 40}ms` }}>
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer animate-fade-in transition-colors"
+                  style={{ animationDelay: `${i * 40}ms` }}
+                  onClick={() => setDetailPayment(p.id)}
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-sm font-bold flex-shrink-0">
                       {sh?.name.charAt(0) || '?'}
@@ -167,7 +200,15 @@ export default function Payments() {
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-card-foreground">৳{p.amount.toLocaleString()}</p>
                     <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'Booking' : 'Remaining'}</Badge>
-                    {p.screenshotUrl && <ImageIcon className="w-4 h-4 text-muted-foreground" />}
+                    {p.screenshotUrl && <ImageIcon className="w-4 h-4 text-primary" />}
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteId(p.id); }}
+                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -175,6 +216,64 @@ export default function Payments() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment Detail Dialog */}
+      <Dialog open={!!detailPayment} onOpenChange={(open) => !open && setDetailPayment(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Payment Details</DialogTitle></DialogHeader>
+          {detail && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold flex-shrink-0">
+                  {detailSh?.name.charAt(0) || '?'}
+                </div>
+                <div>
+                  <p className="font-semibold text-card-foreground">{detailSh?.name || 'Unknown'}</p>
+                  <p className="text-xs text-muted-foreground">{detailSh?.phone}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Amount</p>
+                  <p className="font-bold text-lg text-card-foreground">৳{detail.amount.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Type</p>
+                  <Badge variant="outline">{detail.type === 'booking' ? 'Booking' : 'Remaining'}</Badge>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Date</p>
+                  <p className="font-medium text-card-foreground">{detail.date}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Recorded</p>
+                  <p className="font-medium text-card-foreground">{new Date(detail.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              {detail.screenshotUrl && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Payment Slip</p>
+                  <img src={detail.screenshotUrl} alt="Payment slip" className="w-full rounded-lg border border-border max-h-80 object-contain" />
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Payment?</AlertDialogTitle>
+            <AlertDialogDescription>This will permanently delete this payment record and update the shareholder's balance.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
