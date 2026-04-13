@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Plus, Upload, Image as ImageIcon, X, Search, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,8 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function Payments() {
-  const { shareholders, payments, addPayment, deletePayment, currentRole } = useApp();
-  const isAdmin = currentRole === 'admin' || currentRole === 'director';
+  const { shareholders, payments, addPayment, deletePayment } = useApp();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailPayment, setDetailPayment] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Phone, MapPin, Edit, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { TOTAL_SHARE_AMOUNT } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ import {
 const ITEMS_PER_PAGE = 12;
 
 export default function Shareholders() {
-  const { shareholders, addShareholder, updateShareholder, deleteShareholder, currentRole } = useApp();
+  const { shareholders, addShareholder, updateShareholder, deleteShareholder } = useApp();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -42,7 +43,7 @@ export default function Shareholders() {
   const [form, setForm] = useState({ name: '', phone: '', address: '', bookingDate: new Date().toISOString().split('T')[0], profileImage: '' });
   const [editForm, setEditForm] = useState({ name: '', phone: '', address: '', bookingDate: '', profileImage: '' });
 
-  const isAdmin = currentRole === 'admin' || currentRole === 'director';
+  const { isAdmin } = useAuth();
   const filtered = shareholders.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search));
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
