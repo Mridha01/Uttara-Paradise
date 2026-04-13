@@ -15,7 +15,9 @@ interface AppContextType extends AppState {
   addShareholder: (s: Omit<Shareholder, 'id' | 'totalPaid' | 'status' | 'createdAt'>) => void;
   updateShareholder: (id: string, s: Partial<Shareholder>) => void;
   addPayment: (p: Omit<Payment, 'id' | 'createdAt'>) => void;
+  deletePayment: (id: string) => void;
   addExpense: (e: Omit<Expense, 'id' | 'createdAt'>) => void;
+  deleteShareholder: (id: string) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   getShareholderPayments: (id: string) => Payment[];

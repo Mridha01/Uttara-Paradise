@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { TOTAL_SHARE_AMOUNT } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
