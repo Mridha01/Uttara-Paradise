@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Phone, X } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -36,15 +36,15 @@ export default function Directors() {
             style={{ animationDelay: `${i * 60}ms` }}
             onClick={() => setSelected(d)}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-lg flex-shrink-0">
+            <CardContent className="p-5">
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="w-24 h-24 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-3xl flex-shrink-0">
                   {d.name.charAt(0)}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-card-foreground truncate">{d.name}</h3>
-                  <p className="text-xs text-muted-foreground">{d.role}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                <div>
+                  <h3 className="font-semibold text-card-foreground text-lg">{d.name}</h3>
+                  <p className="text-sm text-muted-foreground">{d.role}</p>
+                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-1">
                     <Phone className="w-3 h-3" /> {d.phone}
                   </div>
                 </div>
@@ -55,28 +55,28 @@ export default function Directors() {
       </div>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Director Details</DialogTitle>
           </DialogHeader>
           {selected && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-2xl flex-shrink-0">
+            <div className="space-y-5">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-32 h-32 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-5xl flex-shrink-0">
                   {selected.name.charAt(0)}
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-card-foreground">{selected.name}</h3>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-card-foreground">{selected.name}</h3>
                   <p className="text-sm text-muted-foreground">{selected.role}</p>
                 </div>
               </div>
-              <p className="text-sm text-card-foreground">{selected.bio}</p>
+              <p className="text-sm text-card-foreground text-center">{selected.bio}</p>
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 justify-center">
                   <Phone className="w-4 h-4 text-primary" />
                   <span className="text-card-foreground">{selected.phone}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 justify-center">
                   <span className="text-primary font-medium">WhatsApp:</span>
                   <a
                     href={`https://wa.me/88${selected.whatsapp}`}
