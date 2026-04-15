@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -19,28 +18,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    const stored = localStorage.getItem('admin_auth');
+    if (stored === 'true') {
+      setUser({ id: 'admin-1', email: 'admin@uttaravilas.com' } as User);
+      setSession({} as Session);
+    }
+    setLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    if (email === 'admin@uttaravilas.com' && password === 'uttaravilas2026@@!!') {
+      const fakeUser = { id: 'admin-1', email } as User;
+      setUser(fakeUser);
+      setSession({} as Session);
+      localStorage.setItem('admin_auth', 'true');
+      return { error: null };
+    }
+    return { error: new Error('Invalid credentials') };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    localStorage.removeItem('admin_auth');
   };
 
   // Any authenticated user is considered admin

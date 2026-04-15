@@ -74,9 +74,9 @@ export default function Directors() {
             <CardContent className="p-5">
               <div className="flex flex-col items-center text-center gap-3">
                 {d.image ? (
-                  <img src={d.image} alt={d.name} className="w-28 h-28 rounded-xl object-cover flex-shrink-0" />
+                  <img src={d.image} alt={d.name} className="w-28 h-28 rounded-full object-cover flex-shrink-0" />
                 ) : (
-                  <div className="w-28 h-28 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground font-bold text-3xl flex-shrink-0">
+                  <div className="w-28 h-28 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-3xl flex-shrink-0">
                     {d.name.charAt(0)}
                   </div>
                 )}
