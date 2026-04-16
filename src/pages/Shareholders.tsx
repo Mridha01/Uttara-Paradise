@@ -11,92 +11,102 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
+import { uploadImage } from '@/lib/storage';
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+  Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious,
 } from '@/components/ui/pagination';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
 const ITEMS_PER_PAGE = 12;
 
 export default function Shareholders() {
-  const { shareholders, addShareholder, updateShareholder, deleteShareholder } = useApp();
+  const { shareholders, addShareholder, updateShareholder, deleteShareholder, loading } = useApp();
+  const { isAdmin } = useAuth();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [form, setForm] = useState({ name: '', phone: '', address: '', bookingDate: new Date().toISOString().split('T')[0], profileImage: '' });
-  const [editForm, setEditForm] = useState({ name: '', phone: '', address: '', bookingDate: '', profileImage: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [form, setForm] = useState({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1' });
+  const [editForm, setEditForm] = useState({ name: '', phone: '', address: '', booking_date: '', num_shares: '1', profile_image_url: '' });
 
-  const { isAdmin } = useAuth();
   const filtered = shareholders.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search));
-
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim()) return;
-    addShareholder({ name: form.name, phone: form.phone, address: form.address, profileImage: form.profileImage, bookingDate: form.bookingDate, totalShare: TOTAL_SHARE_AMOUNT });
-    setForm({ name: '', phone: '', address: '', bookingDate: new Date().toISOString().split('T')[0], profileImage: '' });
-    setDialogOpen(false);
-    toast.success('Shareholder added successfully!');
+    setSubmitting(true);
+    try {
+      let imageUrl = '';
+      if (imageFile) {
+        imageUrl = await uploadImage('shareholder-images', imageFile, 'profiles');
+      }
+      await addShareholder({
+        name: form.name, phone: form.phone, address: form.address,
+        profile_image_url: imageUrl, booking_date: form.booking_date,
+        num_shares: Number(form.num_shares) || 1,
+        total_share: (Number(form.num_shares) || 1) * TOTAL_SHARE_AMOUNT,
+      });
+      setForm({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1' });
+      setImageFile(null);
+      setDialogOpen(false);
+      toast.success('Shareholder added!');
+    } catch { toast.error('Failed to add'); }
+    setSubmitting(false);
   };
 
   const openEdit = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     const s = shareholders.find(sh => sh.id === id);
     if (!s) return;
     setSelectedId(id);
-    setEditForm({ name: s.name, phone: s.phone, address: s.address, bookingDate: s.bookingDate, profileImage: s.profileImage });
+    setEditForm({ name: s.name, phone: s.phone, address: s.address, booking_date: s.booking_date, num_shares: String(s.num_shares), profile_image_url: s.profile_image_url });
+    setEditImageFile(null);
     setEditDialogOpen(true);
   };
 
-  const handleEdit = (e: React.FormEvent) => {
+  const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedId) return;
-    updateShareholder(selectedId, editForm);
-    setEditDialogOpen(false);
-    toast.success('Shareholder updated!');
+    setSubmitting(true);
+    try {
+      let imageUrl = editForm.profile_image_url;
+      if (editImageFile) {
+        imageUrl = await uploadImage('shareholder-images', editImageFile, 'profiles');
+      }
+      await updateShareholder(selectedId, {
+        name: editForm.name, phone: editForm.phone, address: editForm.address,
+        booking_date: editForm.booking_date, profile_image_url: imageUrl,
+        num_shares: Number(editForm.num_shares) || 1,
+      });
+      setEditDialogOpen(false);
+      toast.success('Updated!');
+    } catch { toast.error('Failed to update'); }
+    setSubmitting(false);
   };
 
   const openDelete = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSelectedId(id);
-    setDeleteDialogOpen(true);
+    e.preventDefault(); e.stopPropagation();
+    setSelectedId(id); setDeleteDialogOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!selectedId) return;
-    deleteShareholder(selectedId);
+    await deleteShareholder(selectedId);
     setDeleteDialogOpen(false);
-    toast.success('Shareholder deleted!');
+    toast.success('Deleted!');
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'add' | 'edit') => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    if (target === 'add') setForm(p => ({ ...p, profileImage: url }));
-    else setEditForm(p => ({ ...p, profileImage: url }));
-  };
+  if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-4">
@@ -113,13 +123,15 @@ export default function Shareholders() {
                 <div><Label>Name *</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required /></div>
                 <div><Label>Phone *</Label><Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} required /></div>
                 <div><Label>Address</Label><Input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} /></div>
-                <div><Label>Booking Date</Label><Input type="date" value={form.bookingDate} onChange={e => setForm(p => ({ ...p, bookingDate: e.target.value }))} /></div>
+                <div><Label>Booking Date</Label><Input type="date" value={form.booking_date} onChange={e => setForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
+                <div><Label>Number of Shares</Label><Input type="number" min={1} max={10} value={form.num_shares} onChange={e => setForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
                 <div>
                   <Label>Profile Image</Label>
-                  <Input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'add')} />
-                  {form.profileImage && <img src={form.profileImage} alt="Preview" className="w-16 h-16 rounded-full object-cover mt-2" />}
+                  <Input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
                 </div>
-                <Button type="submit" className="w-full gradient-primary text-primary-foreground">Add Shareholder</Button>
+                <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>
+                  {submitting ? 'Adding...' : 'Add Shareholder'}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -137,8 +149,8 @@ export default function Shareholders() {
             <Card className="shadow-card hover:shadow-elevated transition-shadow cursor-pointer animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  {s.profileImage ? (
-                    <img src={s.profileImage} alt={s.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                  {s.profile_image_url ? (
+                    <img src={s.profile_image_url} alt={s.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
                   ) : (
                     <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-lg flex-shrink-0">
                       {s.name.charAt(0)}
@@ -148,6 +160,7 @@ export default function Shareholders() {
                     <h3 className="font-semibold text-card-foreground truncate">{s.name}</h3>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="w-3 h-3" />{s.phone}</div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5"><MapPin className="w-3 h-3" />{s.address || 'N/A'}</div>
+                    {s.num_shares > 1 && <span className="text-xs font-medium text-primary">Shares: {s.num_shares}</span>}
                   </div>
                   {isAdmin && (
                     <div className="flex flex-col gap-1">
@@ -158,12 +171,12 @@ export default function Shareholders() {
                 </div>
                 <div className="mt-3">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Paid: ৳{s.totalPaid.toLocaleString()}</span>
+                    <span className="text-muted-foreground">Paid: ৳{s.total_paid.toLocaleString()}</span>
                     <span className={s.status === 'fully_paid' ? 'text-success font-medium' : 'text-warning font-medium'}>
-                      {s.status === 'fully_paid' ? '✓ Paid' : `Due: ৳${(TOTAL_SHARE_AMOUNT - s.totalPaid).toLocaleString()}`}
+                      {s.status === 'fully_paid' ? '✓ Paid' : `Due: ৳${(s.total_share - s.total_paid).toLocaleString()}`}
                     </span>
                   </div>
-                  <Progress value={(s.totalPaid / TOTAL_SHARE_AMOUNT) * 100} className="h-1.5" />
+                  <Progress value={(s.total_paid / s.total_share) * 100} className="h-1.5" />
                 </div>
               </CardContent>
             </Card>
@@ -179,9 +192,7 @@ export default function Shareholders() {
             </PaginationItem>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
               <PaginationItem key={page}>
-                <PaginationLink onClick={() => setCurrentPage(page)} isActive={page === currentPage} className="cursor-pointer">
-                  {page}
-                </PaginationLink>
+                <PaginationLink onClick={() => setCurrentPage(page)} isActive={page === currentPage} className="cursor-pointer">{page}</PaginationLink>
               </PaginationItem>
             ))}
             <PaginationItem>
@@ -191,7 +202,6 @@ export default function Shareholders() {
         </Pagination>
       )}
 
-      {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Shareholder</DialogTitle></DialogHeader>
@@ -199,18 +209,20 @@ export default function Shareholders() {
             <div><Label>Name</Label><Input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} required /></div>
             <div><Label>Phone</Label><Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} required /></div>
             <div><Label>Address</Label><Input value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} /></div>
-            <div><Label>Booking Date</Label><Input type="date" value={editForm.bookingDate} onChange={e => setEditForm(p => ({ ...p, bookingDate: e.target.value }))} /></div>
+            <div><Label>Booking Date</Label><Input type="date" value={editForm.booking_date} onChange={e => setEditForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
+            <div><Label>Number of Shares</Label><Input type="number" min={1} max={10} value={editForm.num_shares} onChange={e => setEditForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
             <div>
               <Label>Profile Image</Label>
-              <Input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'edit')} />
-              {editForm.profileImage && <img src={editForm.profileImage} alt="Preview" className="w-16 h-16 rounded-full object-cover mt-2" />}
+              <Input type="file" accept="image/*" onChange={e => setEditImageFile(e.target.files?.[0] || null)} />
+              {editForm.profile_image_url && <img src={editForm.profile_image_url} alt="Current" className="w-16 h-16 rounded-full object-cover mt-2" />}
             </div>
-            <Button type="submit" className="w-full gradient-primary text-primary-foreground">Update Shareholder</Button>
+            <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>
+              {submitting ? 'Updating...' : 'Update Shareholder'}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

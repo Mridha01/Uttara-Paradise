@@ -13,6 +13,7 @@ import Expenses from "@/pages/Expenses";
 import Notifications from "@/pages/Notifications";
 import ProjectDetails from "@/pages/ProjectDetails";
 import Directors from "@/pages/Directors";
+import Installments from "@/pages/Installments";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
                     <Route path="/shareholders/:id" element={<ShareholderDetail />} />
                     <Route path="/payments" element={<Payments />} />
                     <Route path="/expenses" element={<Expenses />} />
+                    <Route path="/installments" element={<Installments />} />
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="/project" element={<ProjectDetails />} />
                     <Route path="/directors" element={<Directors />} />
