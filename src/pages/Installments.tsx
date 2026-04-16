@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Check, X as XIcon, Trash2 } from 'lucide-react';
+import { Plus, Check, X as XIcon, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { INSTALLMENT_AMOUNT } from '@/types';

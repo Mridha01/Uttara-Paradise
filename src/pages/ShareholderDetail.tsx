@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { TOTAL_SHARE_AMOUNT, INSTALLMENT_AMOUNT } from '@/types';
+import {} from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';

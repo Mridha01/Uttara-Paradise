@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Plus, Upload, Image as ImageIcon, X, Search, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
+import { MAX_BOOKING_AMOUNT } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
