@@ -11,6 +11,7 @@ const navItems = [
   { to: '/shareholders', icon: Users, label: 'Shareholders' },
   { to: '/payments', icon: CreditCard, label: 'Payments' },
   { to: '/expenses', icon: Receipt, label: 'Expenses' },
+  { to: '/installments', icon: Calendar, label: 'Installments' },
   { to: '/notifications', icon: Bell, label: 'Notifications' },
   { to: '/project', icon: FileText, label: 'Project Details' },
   { to: '/directors', icon: UserCheck, label: 'Directors' },
