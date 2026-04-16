@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from 'sonner';
 
 export default function Expenses() {
-  const { expenses, addExpense } = useApp();
+  const { expenses, addExpense, loading } = useApp();
   const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ title: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' });
@@ -19,14 +19,16 @@ export default function Expenses() {
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const sorted = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim() || !form.amount) return;
-    addExpense({ title: form.title, amount: Number(form.amount), date: form.date, notes: form.notes });
+    await addExpense({ title: form.title, amount: Number(form.amount), date: form.date, notes: form.notes });
     setForm({ title: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' });
     setDialogOpen(false);
-    toast.success('Expense added successfully!');
+    toast.success('Expense added!');
   };
+
+  if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
 
   return (
     <div className="space-y-4">

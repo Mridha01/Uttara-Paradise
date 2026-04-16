@@ -14,7 +14,238 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activities: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      directors: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string | null
+          name: string
+          phone: string | null
+          role: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          name: string
+          phone?: string | null
+          role?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string | null
+          name?: string
+          phone?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          title: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          title: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      installments: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          month: number
+          notes: string | null
+          screenshot_url: string | null
+          shareholder_id: string
+          year: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          month: number
+          notes?: string | null
+          screenshot_url?: string | null
+          shareholder_id: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          screenshot_url?: string | null
+          shareholder_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installments_shareholder_id_fkey"
+            columns: ["shareholder_id"]
+            isOneToOne: false
+            referencedRelation: "shareholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          type?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          screenshot_url: string | null
+          shareholder_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          screenshot_url?: string | null
+          shareholder_id: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          screenshot_url?: string | null
+          shareholder_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_shareholder_id_fkey"
+            columns: ["shareholder_id"]
+            isOneToOne: false
+            referencedRelation: "shareholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shareholders: {
+        Row: {
+          address: string | null
+          booking_date: string
+          created_at: string
+          id: string
+          name: string
+          num_shares: number
+          phone: string
+          profile_image_url: string | null
+          status: string
+          total_paid: number
+          total_share: number
+        }
+        Insert: {
+          address?: string | null
+          booking_date?: string
+          created_at?: string
+          id?: string
+          name: string
+          num_shares?: number
+          phone: string
+          profile_image_url?: string | null
+          status?: string
+          total_paid?: number
+          total_share?: number
+        }
+        Update: {
+          address?: string | null
+          booking_date?: string
+          created_at?: string
+          id?: string
+          name?: string
+          num_shares?: number
+          phone?: string
+          profile_image_url?: string | null
+          status?: string
+          total_paid?: number
+          total_share?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
