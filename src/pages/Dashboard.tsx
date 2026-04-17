@@ -1,7 +1,7 @@
 import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST } from '@/types';
+import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST, formatBdtBangla } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
