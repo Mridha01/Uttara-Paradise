@@ -127,7 +127,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addPayment = useCallback(async (p: Omit<Payment, 'id' | 'created_at'>) => {
     const sh = shareholders.find(s => s.id === p.shareholder_id);
     if (!sh) return;
-    if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT) return;
+    if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT * (sh.num_shares || 1)) return;
     if (sh.total_paid + p.amount > sh.total_share) return;
 
     await supabase.from('payments').insert({
