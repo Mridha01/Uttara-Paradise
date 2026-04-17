@@ -1,7 +1,14 @@
-import { MapPin, Building2, Home, Car, Layers, Shield, DollarSign, Users, Calendar, Phone } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, Building2, Home, Car, Layers, Shield, DollarSign, Users, Calendar, Phone, Edit, Save, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
+import { TOTAL_LAND_COST, TARGET_SHAREHOLDERS, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT, INSTALLMENT_AMOUNT, INSTALLMENT_MONTHS, formatBdtBangla } from '@/types';
+import { toast } from 'sonner';
 
 const features = [
   '৮ মাত্রার ভূমিকম্প সহনীয় স্ট্রাকচার',
@@ -21,16 +28,114 @@ const locationHighlights = [
 ];
 
 export default function ProjectDetails() {
+  const { settings, updateSetting } = useApp();
+  const { isAdmin } = useAuth();
+  const [editOpen, setEditOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const landPrice = Number(settings.land_price_total) || TOTAL_LAND_COST;
+  const target = Number(settings.target_shareholders) || TARGET_SHAREHOLDERS;
+  const sharePrice = Number(settings.share_price) || TOTAL_SHARE_AMOUNT;
+  const bookingMax = Number(settings.booking_max) || MAX_BOOKING_AMOUNT;
+  const instAmount = Number(settings.installment_amount) || INSTALLMENT_AMOUNT;
+  const instMonths = Number(settings.installment_months) || INSTALLMENT_MONTHS;
+
+  const [form, setForm] = useState({
+    land_price_total: String(landPrice),
+    target_shareholders: String(target),
+    share_price: String(sharePrice),
+    booking_max: String(bookingMax),
+    installment_amount: String(instAmount),
+    installment_months: String(instMonths),
+  });
+
+  const openEdit = () => {
+    setForm({
+      land_price_total: String(landPrice),
+      target_shareholders: String(target),
+      share_price: String(sharePrice),
+      booking_max: String(bookingMax),
+      installment_amount: String(instAmount),
+      installment_months: String(instMonths),
+    });
+    setEditOpen(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await Promise.all(
+        Object.entries(form).map(([k, v]) => updateSetting(k, v))
+      );
+      toast.success('Project settings updated!');
+      setEditOpen(false);
+    } catch {
+      toast.error('Failed to update');
+    }
+    setSaving(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Hero Banner */}
-      <div className="gradient-primary rounded-xl p-6 text-primary-foreground">
+      <div className="gradient-primary rounded-xl p-6 text-primary-foreground relative">
         <h1 className="text-2xl lg:text-3xl font-bold">🏗️ Uttara Vilas</h1>
         <p className="text-primary-foreground/80 text-lg mt-1">Your Future, Your Address</p>
         <p className="text-primary-foreground/70 text-sm mt-2">
           ঢাকার উত্তরার অভিজাত এলাকায়, আধুনিক সুযোগ-সুবিধা এবং বিনিয়োগের নিরাপদ সম্ভাবনা নিয়ে আসছে আমাদের স্বপ্নের প্রকল্প
         </p>
+        {isAdmin && !editOpen && (
+          <Button onClick={openEdit} variant="secondary" size="sm" className="absolute top-4 right-4 gap-2">
+            <Edit className="w-3.5 h-3.5" /> Edit Settings
+          </Button>
+        )}
       </div>
+
+      {/* Admin Edit Panel */}
+      {isAdmin && editOpen && (
+        <Card className="shadow-card border-primary">
+          <CardHeader className="pb-2 flex-row items-center justify-between">
+            <CardTitle className="text-base">⚙️ Edit Project Settings</CardTitle>
+            <button onClick={() => setEditOpen(false)} className="p-1 rounded hover:bg-muted"><X className="w-4 h-4" /></button>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label>জমির মোট মূল্য (৳)</Label>
+                <Input type="number" value={form.land_price_total} onChange={e => setForm(p => ({ ...p, land_price_total: e.target.value }))} />
+                <p className="text-xs text-muted-foreground mt-1">{formatBdtBangla(Number(form.land_price_total) || 0)}</p>
+              </div>
+              <div>
+                <Label>মোট শেয়ার সংখ্যা</Label>
+                <Input type="number" value={form.target_shareholders} onChange={e => setForm(p => ({ ...p, target_shareholders: e.target.value }))} />
+              </div>
+              <div>
+                <Label>প্রতি শেয়ারের মূল্য (৳)</Label>
+                <Input type="number" value={form.share_price} onChange={e => setForm(p => ({ ...p, share_price: e.target.value }))} />
+              </div>
+              <div>
+                <Label>বুকিং মানি (৳)</Label>
+                <Input type="number" value={form.booking_max} onChange={e => setForm(p => ({ ...p, booking_max: e.target.value }))} />
+              </div>
+              <div>
+                <Label>মাসিক ইনস্টলমেন্ট (৳)</Label>
+                <Input type="number" value={form.installment_amount} onChange={e => setForm(p => ({ ...p, installment_amount: e.target.value }))} />
+              </div>
+              <div>
+                <Label>মোট মাস</Label>
+                <Input type="number" value={form.installment_months} onChange={e => setForm(p => ({ ...p, installment_months: e.target.value }))} />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSave} disabled={saving} className="gradient-primary text-primary-foreground gap-2">
+                <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button onClick={() => setEditOpen(false)} variant="outline">Cancel</Button>
+            </div>
+            <p className="text-xs text-muted-foreground">📌 এই পরিবর্তন Dashboard এবং সব জায়গায় তাৎক্ষণিক প্রতিফলিত হবে।</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Location Highlights */}
       <Card className="shadow-card">
@@ -53,7 +158,7 @@ export default function ProjectDetails() {
         {[
           { icon: Layers, label: 'জমির পরিমাণ', value: '১৪ কাঠা' },
           { icon: Building2, label: 'বিল্ডিং টাইপ', value: 'B+G+13' },
-          { icon: Home, label: 'মোট ইউনিট', value: '৯১টি' },
+          { icon: Home, label: 'মোট ইউনিট', value: `${target}টি` },
           { icon: Home, label: 'ফ্ল্যাট সাইজ', value: '১১৫০ sqft' },
           { icon: Car, label: 'গ্যারেজ', value: '৩০টি (~১৩০ sqft)' },
           { icon: Shield, label: 'রাস্তা', value: '৪০ ft + ১০ ft' },
@@ -84,7 +189,7 @@ export default function ProjectDetails() {
         </CardContent>
       </Card>
 
-      {/* Investment Highlights */}
+      {/* Investment Highlights — driven by settings */}
       <Card className="shadow-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2"><DollarSign className="w-5 h-5 text-primary" /> ইনভেস্টমেন্ট হাইলাইটস</CardTitle>
@@ -93,19 +198,27 @@ export default function ProjectDetails() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div className="p-3 rounded-lg bg-muted">
               <p className="text-muted-foreground">জমির মোট মূল্য</p>
-              <p className="text-lg font-bold text-card-foreground">৳৪,৫৫,০০,০০০</p>
+              <p className="text-lg font-bold text-card-foreground">{formatBdtBangla(landPrice)}</p>
             </div>
             <div className="p-3 rounded-lg bg-muted">
               <p className="text-muted-foreground">মোট শেয়ার</p>
-              <p className="text-lg font-bold text-card-foreground">৯১ জন</p>
+              <p className="text-lg font-bold text-card-foreground">{target} জন</p>
             </div>
             <div className="p-3 rounded-lg bg-muted">
               <p className="text-muted-foreground">প্রতি শেয়ারের মূল্য</p>
-              <p className="text-lg font-bold text-card-foreground">৳৫,০০,০০০ + ৪৫,০০০</p>
+              <p className="text-lg font-bold text-card-foreground">{formatBdtBangla(sharePrice)}</p>
             </div>
             <div className="p-3 rounded-lg bg-muted">
               <p className="text-muted-foreground">বুকিং মানি</p>
-              <p className="text-lg font-bold text-card-foreground">৳৫০,০০০</p>
+              <p className="text-lg font-bold text-card-foreground">{formatBdtBangla(bookingMax)}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted">
+              <p className="text-muted-foreground">মাসিক ইনস্টলমেন্ট</p>
+              <p className="text-lg font-bold text-card-foreground">{formatBdtBangla(instAmount)} × {instMonths} মাস</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted">
+              <p className="text-muted-foreground">মোট ইনস্টলমেন্ট সম্ভাবনা</p>
+              <p className="text-lg font-bold text-card-foreground">{formatBdtBangla(instAmount * instMonths * target)}</p>
             </div>
           </div>
         </CardContent>
@@ -131,7 +244,6 @@ export default function ProjectDetails() {
         </CardContent>
       </Card>
 
-      {/* Why Uttara Vilas */}
       <Card className="shadow-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">🚀 কেন Uttara Vilas?</CardTitle>
@@ -146,7 +258,6 @@ export default function ProjectDetails() {
         </CardContent>
       </Card>
 
-      {/* Timeline */}
       <Card className="shadow-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2"><Calendar className="w-5 h-5 text-primary" /> টাইমলাইন</CardTitle>
@@ -165,7 +276,6 @@ export default function ProjectDetails() {
         </CardContent>
       </Card>
 
-      {/* Contact / Directors */}
       <Card className="shadow-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2"><Phone className="w-5 h-5 text-primary" /> যোগাযোগ</CardTitle>
