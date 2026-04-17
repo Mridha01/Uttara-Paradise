@@ -49,8 +49,9 @@ export default function Payments() {
     const numAmount = Number(amount);
     const sh = shareholders.find(s => s.id === selectedShareholder);
     if (!sh) return;
-    if (paymentType === 'booking' && numAmount > MAX_BOOKING_AMOUNT) {
-      toast.error(`Booking max ৳${MAX_BOOKING_AMOUNT.toLocaleString()}`);
+    const bookingMax = MAX_BOOKING_AMOUNT * (sh.num_shares || 1);
+    if (paymentType === 'booking' && numAmount > bookingMax) {
+      toast.error(`Booking max ৳${bookingMax.toLocaleString()} (${sh.num_shares} share × ৳${MAX_BOOKING_AMOUNT.toLocaleString()})`);
       return;
     }
     if (sh.total_paid + numAmount > sh.total_share) {
@@ -118,10 +119,17 @@ export default function Payments() {
                   <Select value={paymentType} onValueChange={v => setPaymentType(v as any)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="booking">Booking (Max ৳{MAX_BOOKING_AMOUNT.toLocaleString()})</SelectItem>
+                      <SelectItem value="booking">Booking (Max ৳{MAX_BOOKING_AMOUNT.toLocaleString()} per share)</SelectItem>
                       <SelectItem value="remaining">Remaining</SelectItem>
                     </SelectContent>
                   </Select>
+                  {selectedShareholder && (() => {
+                    const sh = shareholders.find(s => s.id === selectedShareholder);
+                    if (sh && sh.num_shares > 1 && paymentType === 'booking') {
+                      return <p className="text-xs text-muted-foreground mt-1">এই শেয়ারহোল্ডারের {sh.num_shares}টি শেয়ার, তাই বুকিং সর্বোচ্চ ৳{(MAX_BOOKING_AMOUNT * sh.num_shares).toLocaleString()}</p>;
+                    }
+                    return null;
+                  })()}
                 </div>
                 <div><Label>Date</Label><Input type="date" value={date} onChange={e => setDate(e.target.value)} /></div>
                 <div>

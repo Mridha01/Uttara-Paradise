@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Shareholder, Payment, Expense, Notification, Activity, Director, Installment, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
+import { Shareholder, Payment, Expense, Notification, Activity, Director, DirectorRole, Installment, ProjectSetting, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
 
 interface AppContextType {
   shareholders: Shareholder[];
@@ -9,7 +9,9 @@ interface AppContextType {
   notifications: Notification[];
   activities: Activity[];
   directors: Director[];
+  directorRoles: DirectorRole[];
   installments: Installment[];
+  settings: Record<string, string>;
   loading: boolean;
   addShareholder: (s: Omit<Shareholder, 'id' | 'total_paid' | 'status' | 'created_at'>) => Promise<void>;
   updateShareholder: (id: string, s: Partial<Shareholder>) => Promise<void>;
@@ -19,8 +21,12 @@ interface AppContextType {
   addExpense: (e: Omit<Expense, 'id' | 'created_at'>) => Promise<void>;
   addDirector: (d: Omit<Director, 'id' | 'created_at'>) => Promise<void>;
   updateDirector: (id: string, d: Partial<Director>) => Promise<void>;
+  deleteDirector: (id: string) => Promise<void>;
+  addDirectorRole: (name: string) => Promise<void>;
+  deleteDirectorRole: (id: string) => Promise<void>;
   addInstallment: (i: Omit<Installment, 'id' | 'created_at'>) => Promise<void>;
   deleteInstallment: (id: string) => Promise<void>;
+  updateSetting: (key: string, value: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   getShareholderPayments: (id: string) => Payment[];
@@ -38,18 +44,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [directors, setDirectors] = useState<Director[]>([]);
+  const [directorRoles, setDirectorRoles] = useState<DirectorRole[]>([]);
   const [installments, setInstallments] = useState<Installment[]>([]);
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [shRes, payRes, expRes, notRes, actRes, dirRes, instRes] = await Promise.all([
+    const [shRes, payRes, expRes, notRes, actRes, dirRes, rolesRes, instRes, setRes] = await Promise.all([
       supabase.from('shareholders').select('*').order('created_at', { ascending: false }),
       supabase.from('payments').select('*').order('date', { ascending: false }),
       supabase.from('expenses').select('*').order('date', { ascending: false }),
       supabase.from('notifications').select('*').order('created_at', { ascending: false }),
       supabase.from('activities').select('*').order('created_at', { ascending: false }),
       supabase.from('directors').select('*').order('display_order', { ascending: true }),
+      (supabase.from as any)('director_roles').select('*').order('display_order', { ascending: true }),
       supabase.from('installments').select('*').order('year', { ascending: false }).order('month', { ascending: false }),
+      (supabase.from as any)('project_settings').select('*'),
     ]);
     if (shRes.data) setShareholders(shRes.data as unknown as Shareholder[]);
     if (payRes.data) setPayments(payRes.data as unknown as Payment[]);
@@ -57,7 +67,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (notRes.data) setNotifications(notRes.data as unknown as Notification[]);
     if (actRes.data) setActivities(actRes.data as unknown as Activity[]);
     if (dirRes.data) setDirectors(dirRes.data as unknown as Director[]);
+    if (rolesRes?.data) setDirectorRoles(rolesRes.data as unknown as DirectorRole[]);
     if (instRes.data) setInstallments(instRes.data as unknown as Installment[]);
+    if (setRes?.data) {
+      const map: Record<string, string> = {};
+      (setRes.data as ProjectSetting[]).forEach(r => { map[r.key] = r.value; });
+      setSettings(map);
+    }
     setLoading(false);
   }, []);
 
@@ -111,7 +127,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addPayment = useCallback(async (p: Omit<Payment, 'id' | 'created_at'>) => {
     const sh = shareholders.find(s => s.id === p.shareholder_id);
     if (!sh) return;
-    if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT) return;
+    if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT * (sh.num_shares || 1)) return;
     if (sh.total_paid + p.amount > sh.total_share) return;
 
     await supabase.from('payments').insert({
@@ -161,6 +177,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await fetchAll();
   }, [fetchAll]);
 
+  const deleteDirector = useCallback(async (id: string) => {
+    await supabase.from('directors').delete().eq('id', id);
+    await fetchAll();
+  }, [fetchAll]);
+
+  const addDirectorRole = useCallback(async (name: string) => {
+    await (supabase.from as any)('director_roles').insert({ name, display_order: directorRoles.length });
+    await fetchAll();
+  }, [fetchAll, directorRoles.length]);
+
+  const deleteDirectorRole = useCallback(async (id: string) => {
+    await (supabase.from as any)('director_roles').delete().eq('id', id);
+    await fetchAll();
+  }, [fetchAll]);
+
+  const updateSetting = useCallback(async (key: string, value: string) => {
+    const { data: existing } = await (supabase.from as any)('project_settings').select('id').eq('key', key).maybeSingle();
+    if (existing?.id) {
+      await (supabase.from as any)('project_settings').update({ value, updated_at: new Date().toISOString() }).eq('id', existing.id);
+    } else {
+      await (supabase.from as any)('project_settings').insert({ key, value });
+    }
+    await fetchAll();
+  }, [fetchAll]);
+
   const addInstallment = useCallback(async (i: Omit<Installment, 'id' | 'created_at'>) => {
     const sh = shareholders.find(s => s.id === i.shareholder_id);
     await supabase.from('installments').insert({
@@ -203,11 +244,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      shareholders, payments, expenses, notifications, activities, directors, installments, loading,
+      shareholders, payments, expenses, notifications, activities, directors, directorRoles, installments, settings, loading,
       addShareholder, updateShareholder, deleteShareholder,
       addPayment, deletePayment, addExpense,
-      addDirector, updateDirector,
+      addDirector, updateDirector, deleteDirector,
+      addDirectorRole, deleteDirectorRole,
       addInstallment, deleteInstallment,
+      updateSetting,
       markNotificationRead, markAllNotificationsRead,
       getShareholderPayments, getShareholderInstallments, getShareholder,
       refresh: fetchAll,

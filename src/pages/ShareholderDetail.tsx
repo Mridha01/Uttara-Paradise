@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-// types imported via AppContext
+import { INSTALLMENT_MONTHS, INSTALLMENT_AMOUNT } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 export default function ShareholderDetail() {
   const { id } = useParams<{ id: string }>();
-  const { getShareholder, getShareholderPayments, getShareholderInstallments, loading } = useApp();
+  const { getShareholder, getShareholderPayments, getShareholderInstallments, settings, loading } = useApp();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
 
   const shareholder = getShareholder(id!);
@@ -97,28 +97,46 @@ export default function ShareholderDetail() {
       </Card>
 
       {/* Installment History */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">📅 Installment Collection (৳{totalInstallments.toLocaleString()})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {installments.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">No installments yet</p>
-          ) : (
-            <div className="space-y-3">
-              {installments.map(inst => (
-                <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div>
-                    <p className="text-sm font-medium text-card-foreground">৳{inst.amount.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">{inst.month}/{inst.year} • {inst.date}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">Installment</Badge>
+      {(() => {
+        const totalMonths = Number(settings.installment_months) || INSTALLMENT_MONTHS;
+        const monthlyAmount = Number(settings.installment_amount) || INSTALLMENT_AMOUNT;
+        const paidCount = installments.length;
+        const targetTotal = totalMonths * monthlyAmount;
+        const pct = Math.min(100, (totalInstallments / targetTotal) * 100);
+        return (
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center justify-between flex-wrap gap-2">
+                <span>📅 ইনস্টলমেন্ট ({paidCount} / {totalMonths} মাস)</span>
+                <span className="text-sm font-normal text-success">৳{totalInstallments.toLocaleString()} / ৳{targetTotal.toLocaleString()}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Progress value={pct} className="h-2" />
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">পরিশোধিত</p><p className="text-sm font-bold text-success">{paidCount} মাস</p></div>
+                <div className="p-2 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">বাকি</p><p className="text-sm font-bold text-warning">{Math.max(0, totalMonths - paidCount)} মাস</p></div>
+                <div className="p-2 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">প্রগ্রেস</p><p className="text-sm font-bold text-primary">{Math.round(pct)}%</p></div>
+              </div>
+              {installments.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No installments yet</p>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {installments.map(inst => (
+                    <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="text-sm font-medium text-card-foreground">৳{inst.amount.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">{inst.month}/{inst.year} • {inst.date}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">Installment</Badge>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Payment Detail Popup */}
       <Dialog open={!!selectedPayment} onOpenChange={(open) => !open && setSelectedPayment(null)}>

@@ -1,16 +1,19 @@
 import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST } from '@/types';
+import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST, formatBdtBangla } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function Dashboard() {
-  const { shareholders, expenses, activities, installments, loading } = useApp();
+  const { shareholders, expenses, activities, installments, settings, loading } = useApp();
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
+
+  const target = Number(settings.target_shareholders) || TARGET_SHAREHOLDERS;
+  const landCost = Number(settings.land_price_total) || TOTAL_LAND_COST;
 
   const totalShareholders = shareholders.length;
   const totalShares = shareholders.reduce((s, sh) => s + sh.num_shares, 0);
@@ -19,17 +22,17 @@ export default function Dashboard() {
   const totalCollected = shareholders.reduce((sum, s) => sum + s.total_paid, 0);
   const totalExpected = shareholders.reduce((sum, s) => sum + s.total_share, 0);
   const remaining = totalExpected - totalCollected;
-  const remainingSlots = TARGET_SHAREHOLDERS - totalShares;
+  const remainingSlots = target - totalShares;
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalInstallments = installments.reduce((s, i) => s + i.amount, 0);
-  const landRemaining = TOTAL_LAND_COST - totalCollected;
+  const landRemaining = landCost - totalCollected;
 
   const stats = [
-    { label: 'Total Shareholders', value: totalShareholders, target: `/ ${TARGET_SHAREHOLDERS}`, icon: Users, color: 'text-primary' },
-    { label: 'Total Shares Sold', value: totalShares, target: `/ ${TARGET_SHAREHOLDERS}`, icon: CreditCard, color: 'text-warning' },
+    { label: 'Total Shareholders', value: totalShareholders, target: `/ ${target}`, icon: Users, color: 'text-primary' },
+    { label: 'Total Shares Sold', value: totalShares, target: `/ ${target}`, icon: CreditCard, color: 'text-warning' },
     { label: 'Fully Paid', value: fullyPaid, icon: CheckCircle2, color: 'text-success' },
-    { label: 'Collected', value: `৳${(totalCollected / 100000).toFixed(1)}L`, icon: TrendingUp, color: 'text-primary' },
-    { label: 'Remaining', value: `৳${(remaining / 100000).toFixed(1)}L`, icon: Banknote, color: 'text-destructive' },
+    { label: 'Collected', value: formatBdtBangla(totalCollected), icon: TrendingUp, color: 'text-primary' },
+    { label: 'Remaining', value: formatBdtBangla(remaining), icon: Banknote, color: 'text-destructive' },
     { label: 'Slots Left', value: remainingSlots, icon: UserMinus, color: 'text-muted-foreground' },
   ];
 
@@ -45,7 +48,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-xl font-bold">🏗️ Uttara Vilas</h2>
-            <p className="text-primary-foreground/80 text-sm mt-1">{totalShares} of {TARGET_SHAREHOLDERS} shares sold • ৳{totalCollected.toLocaleString()} collected</p>
+            <p className="text-primary-foreground/80 text-sm mt-1">{totalShares} of {target} shares sold • {formatBdtBangla(totalCollected)} collected</p>
           </div>
           <div className="text-right">
             <p className="text-sm text-primary-foreground/70">Overall Progress</p>
@@ -100,7 +103,7 @@ export default function Dashboard() {
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">📅 Total Installment Collected</p>
-            <p className="text-xl font-bold text-primary">৳{totalInstallments.toLocaleString()}</p>
+            <p className="text-xl font-bold text-primary">{formatBdtBangla(totalInstallments)}</p>
           </div>
           <Link to="/installments"><Button variant="outline" size="sm" className="gap-2"><Calendar className="w-4 h-4" /> View Details</Button></Link>
         </CardContent>
@@ -111,19 +114,19 @@ export default function Dashboard() {
         <CardHeader className="pb-2"><CardTitle className="text-base">🏞️ জমির মূল্য পরিশোধ</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">মোট মূল্য</p><p className="text-lg font-bold text-card-foreground">৳{(TOTAL_LAND_COST / 100000).toFixed(1)}L</p></div>
-            <div className="p-3 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">সংগৃহীত</p><p className="text-lg font-bold text-success">৳{(totalCollected / 100000).toFixed(1)}L</p></div>
-            <div className="p-3 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">বাকি</p><p className="text-lg font-bold text-destructive">৳{(Math.max(0, landRemaining) / 100000).toFixed(1)}L</p></div>
+            <div className="p-3 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">মোট মূল্য</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(landCost)}</p></div>
+            <div className="p-3 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">সংগৃহীত</p><p className="text-lg font-bold text-success">{formatBdtBangla(totalCollected)}</p></div>
+            <div className="p-3 rounded-lg bg-muted"><p className="text-xs text-muted-foreground">বাকি</p><p className="text-lg font-bold text-destructive">{formatBdtBangla(Math.max(0, landRemaining))}</p></div>
           </div>
-          <Progress value={(totalCollected / TOTAL_LAND_COST) * 100} className="h-2" />
-          <p className="text-xs text-muted-foreground text-center">{Math.round((totalCollected / TOTAL_LAND_COST) * 100)}% পরিশোধিত</p>
+          <Progress value={(totalCollected / landCost) * 100} className="h-2" />
+          <p className="text-xs text-muted-foreground text-center">{Math.round((totalCollected / landCost) * 100)}% পরিশোধিত</p>
         </CardContent>
       </Card>
 
       <Card className="shadow-card">
         <CardContent className="p-4 flex items-center justify-between">
-          <div><p className="text-sm text-muted-foreground">Total Expenses</p><p className="text-xl font-bold text-card-foreground">৳{totalExpenses.toLocaleString()}</p></div>
-          <div><p className="text-sm text-muted-foreground">Net Collected</p><p className="text-xl font-bold text-success">৳{(totalCollected - totalExpenses).toLocaleString()}</p></div>
+          <div><p className="text-sm text-muted-foreground">Total Expenses</p><p className="text-xl font-bold text-card-foreground">{formatBdtBangla(totalExpenses)}</p></div>
+          <div><p className="text-sm text-muted-foreground">Net Collected</p><p className="text-xl font-bold text-success">{formatBdtBangla(totalCollected - totalExpenses)}</p></div>
         </CardContent>
       </Card>
 
