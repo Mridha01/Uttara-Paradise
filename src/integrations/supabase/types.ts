@@ -35,6 +35,27 @@ export type Database = {
         }
         Relationships: []
       }
+      director_roles: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       directors: {
         Row: {
           bio: string | null
@@ -203,6 +224,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      project_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
       }
       shareholders: {
         Row: {
