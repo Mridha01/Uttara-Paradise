@@ -86,6 +86,37 @@ export interface ProjectSetting {
   updated_at: string;
 }
 
+export interface ProjectContent {
+  id: string;
+  section: string;
+  content: any;
+  updated_at: string;
+}
+
+export interface RentalConfig {
+  id: string;
+  rooms: number;
+  rent_per_room: number;
+  shops: number;
+  rent_per_shop: number;
+  target_months: number;
+  notes?: string;
+  updated_at: string;
+}
+
+export interface RentalCollection {
+  id: string;
+  month: number;
+  year: number;
+  amount: number;
+  rooms: number;
+  shops: number;
+  date: string;
+  notes?: string;
+  screenshot_url?: string;
+  created_at: string;
+}
+
 // Defaults — these are overridden at runtime by values from project_settings table
 export const TOTAL_SHARE_AMOUNT = 550000;
 export const MAX_BOOKING_AMOUNT = 50000;
