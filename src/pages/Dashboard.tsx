@@ -1,4 +1,4 @@
-import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck, Calendar } from 'lucide-react';
+import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck, Calendar, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST, formatBdtBangla } from '@/types';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function Dashboard() {
-  const { shareholders, expenses, activities, installments, settings, loading } = useApp();
+  const { shareholders, expenses, activities, installments, rentalCollections, settings, loading } = useApp();
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
 
@@ -106,6 +106,18 @@ export default function Dashboard() {
             <p className="text-xl font-bold text-primary">{formatBdtBangla(totalInstallments)}</p>
           </div>
           <Link to="/installments"><Button variant="outline" size="sm" className="gap-2"><Calendar className="w-4 h-4" /> View Details</Button></Link>
+        </CardContent>
+      </Card>
+
+      {/* Rental Income Summary */}
+      <Card className="shadow-card">
+        <CardContent className="p-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">🏠 Total Rental Income Collected</p>
+            <p className="text-xl font-bold text-success">{formatBdtBangla(rentalCollections.reduce((s, r) => s + Number(r.amount), 0))}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{rentalCollections.length} মাস সংগৃহীত</p>
+          </div>
+          <Link to="/rental"><Button variant="outline" size="sm" className="gap-2"><Home className="w-4 h-4" /> View Details</Button></Link>
         </CardContent>
       </Card>
 
