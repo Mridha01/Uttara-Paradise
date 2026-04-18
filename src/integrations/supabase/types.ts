@@ -225,6 +225,27 @@ export type Database = {
           },
         ]
       }
+      project_content: {
+        Row: {
+          content: Json
+          id: string
+          section: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          id?: string
+          section: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          id?: string
+          section?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       project_settings: {
         Row: {
           id: string
@@ -243,6 +264,78 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      rental_collections: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          month: number
+          notes: string | null
+          rooms: number
+          screenshot_url: string | null
+          shops: number
+          year: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          month: number
+          notes?: string | null
+          rooms?: number
+          screenshot_url?: string | null
+          shops?: number
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          rooms?: number
+          screenshot_url?: string | null
+          shops?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      rental_config: {
+        Row: {
+          id: string
+          notes: string | null
+          rent_per_room: number
+          rent_per_shop: number
+          rooms: number
+          shops: number
+          target_months: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          rent_per_room?: number
+          rent_per_shop?: number
+          rooms?: number
+          shops?: number
+          target_months?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          rent_per_room?: number
+          rent_per_shop?: number
+          rooms?: number
+          shops?: number
+          target_months?: number
+          updated_at?: string
         }
         Relationships: []
       }
