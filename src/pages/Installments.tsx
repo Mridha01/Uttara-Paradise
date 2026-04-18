@@ -300,10 +300,6 @@ export default function Installments() {
                   </div>
                 ))}
               </div>
-                    <Badge className="bg-success text-success-foreground">Paid</Badge>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </DialogContent>
