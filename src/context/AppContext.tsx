@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Shareholder, Payment, Expense, Notification, Activity, Director, DirectorRole, Installment, ProjectSetting, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
+import { Shareholder, Payment, Expense, Notification, Activity, Director, DirectorRole, Installment, ProjectSetting, ProjectContent, RentalConfig, RentalCollection, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
 
 interface AppContextType {
   shareholders: Shareholder[];
