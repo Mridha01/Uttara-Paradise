@@ -17,6 +17,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import RentalProjectionChart from '@/components/RentalProjectionChart';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -225,6 +226,9 @@ export default function Rental() {
           {rentalConfig?.notes && <p className="text-xs text-muted-foreground italic">📝 {rentalConfig.notes}</p>}
         </CardContent>
       </Card>
+
+      {/* Projection Chart */}
+      <RentalProjectionChart collections={rentalCollections} expectedMonthly={expectedMonthly} targetMonths={targetMonths} />
 
       {/* Breakdown */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

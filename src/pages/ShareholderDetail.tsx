@@ -1,17 +1,31 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, Link2, Copy, ExternalLink } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { INSTALLMENT_MONTHS, INSTALLMENT_AMOUNT } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 export default function ShareholderDetail() {
   const { id } = useParams<{ id: string }>();
   const { getShareholder, getShareholderPayments, getShareholderInstallments, settings, loading } = useApp();
+  const { isAdmin } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+
+  const portalUrl = id ? `${window.location.origin}/portal/${id}` : '';
+  const copyPortalLink = async () => {
+    try {
+      await navigator.clipboard.writeText(portalUrl);
+      toast.success('পোর্টাল লিংক কপি হয়েছে! শেয়ারহোল্ডারকে পাঠান।');
+    } catch {
+      toast.error('কপি করতে ব্যর্থ');
+    }
+  };
 
   const shareholder = getShareholder(id!);
   const payments = getShareholderPayments(id!);
