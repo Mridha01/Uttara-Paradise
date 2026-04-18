@@ -49,9 +49,21 @@ export default function ShareholderDetail() {
 
   return (
     <div className="space-y-4">
-      <Link to="/shareholders" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Shareholders
-      </Link>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <Link to="/shareholders" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Shareholders
+        </Link>
+        <div className="flex items-center gap-2">
+          <a href={portalUrl} target="_blank" rel="noopener noreferrer">
+            <Button size="sm" variant="outline" className="gap-2"><ExternalLink className="w-3.5 h-3.5" /> পোর্টাল প্রিভিউ</Button>
+          </a>
+          {isAdmin && (
+            <Button size="sm" onClick={copyPortalLink} className="gap-2 gradient-primary text-primary-foreground">
+              <Copy className="w-3.5 h-3.5" /> পোর্টাল লিংক কপি
+            </Button>
+          )}
+        </div>
+      </div>
 
       <Card className="shadow-card">
         <CardContent className="p-5">
