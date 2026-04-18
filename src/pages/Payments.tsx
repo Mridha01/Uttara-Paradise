@@ -113,7 +113,24 @@ export default function Payments() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div><Label>Amount (৳) *</Label><Input type="number" value={amount} onChange={e => setAmount(e.target.value)} min={1} required /></div>
+                <div>
+                  <Label>Amount (৳) *</Label>
+                  <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} min={1} required />
+                  {selectedShareholder && paymentType === 'booking' && (() => {
+                    const sh = shareholders.find(s => s.id === selectedShareholder);
+                    if (!sh) return null;
+                    const max = MAX_BOOKING_AMOUNT * (sh.num_shares || 1);
+                    return (
+                      <div className="flex items-center justify-between mt-1.5">
+                        <p className="text-xs text-muted-foreground">
+                          Booking max: <span className="font-semibold text-primary">৳{max.toLocaleString()}</span>
+                          {sh.num_shares > 1 && <> ({sh.num_shares} × ৳{MAX_BOOKING_AMOUNT.toLocaleString()})</>}
+                        </p>
+                        <button type="button" onClick={() => setAmount(String(max))} className="text-xs font-medium text-primary hover:underline">Use max</button>
+                      </div>
+                    );
+                  })()}
+                </div>
                 <div>
                   <Label>Payment Type *</Label>
                   <Select value={paymentType} onValueChange={v => setPaymentType(v as any)}>
@@ -126,7 +143,7 @@ export default function Payments() {
                   {selectedShareholder && (() => {
                     const sh = shareholders.find(s => s.id === selectedShareholder);
                     if (sh && sh.num_shares > 1 && paymentType === 'booking') {
-                      return <p className="text-xs text-muted-foreground mt-1">এই শেয়ারহোল্ডারের {sh.num_shares}টি শেয়ার, তাই বুকিং সর্বোচ্চ ৳{(MAX_BOOKING_AMOUNT * sh.num_shares).toLocaleString()}</p>;
+                      return <p className="text-xs text-muted-foreground mt-1">এই শেয়ারহোল্ডারের {sh.num_shares}টি শেয়ার, একসাথে সর্বোচ্চ ৳{(MAX_BOOKING_AMOUNT * sh.num_shares).toLocaleString()} বুকিং দিতে পারবেন।</p>;
                     }
                     return null;
                   })()}

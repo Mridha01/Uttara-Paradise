@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck, LogIn, LogOut, Calendar } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck, LogIn, LogOut, Calendar, Home } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ const navItems = [
   { to: '/payments', icon: CreditCard, label: 'Payments' },
   { to: '/expenses', icon: Receipt, label: 'Expenses' },
   { to: '/installments', icon: Calendar, label: 'Installments' },
+  { to: '/rental', icon: Home, label: 'Rental Income' },
   { to: '/notifications', icon: Bell, label: 'Notifications' },
   { to: '/project', icon: FileText, label: 'Project Details' },
   { to: '/directors', icon: UserCheck, label: 'Directors' },

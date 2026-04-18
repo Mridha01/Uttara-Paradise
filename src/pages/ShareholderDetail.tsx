@@ -52,9 +52,13 @@ export default function ShareholderDetail() {
               <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" />{shareholder.phone}</span>
                 <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{shareholder.address || 'N/A'}</span>
-                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{shareholder.booking_date}</span>
               </div>
-              {shareholder.num_shares > 1 && <span className="text-sm font-medium text-primary">Shares: {shareholder.num_shares}</span>}
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+                  <Calendar className="w-4 h-4" /> Joined: {new Date(shareholder.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
+                </span>
+                {shareholder.num_shares > 1 && <span className="text-sm font-medium text-primary">Shares: {shareholder.num_shares}</span>}
+              </div>
             </div>
             <Badge variant={shareholder.status === 'fully_paid' ? 'default' : 'secondary'} className={shareholder.status === 'fully_paid' ? 'bg-success' : ''}>
               {shareholder.status === 'fully_paid' ? 'Fully Paid' : shareholder.status === 'partial' ? 'Partial' : 'Booked'}
@@ -123,12 +127,18 @@ export default function ShareholderDetail() {
               ) : (
                 <div className="space-y-2 max-h-72 overflow-y-auto">
                   {installments.map(inst => (
-                    <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div>
-                        <p className="text-sm font-medium text-card-foreground">৳{inst.amount.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">{inst.month}/{inst.year} • {inst.date}</p>
+                    <div key={inst.id} className="p-3 rounded-lg bg-muted/50 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-card-foreground">৳{inst.amount.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">{inst.month}/{inst.year} • {inst.date}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Installment</Badge>
                       </div>
-                      <Badge variant="outline" className="text-xs">Installment</Badge>
+                      {inst.screenshot_url && (
+                        <img src={inst.screenshot_url} alt="Installment slip" className="w-full max-h-64 object-contain rounded-md border border-border" />
+                      )}
+                      {inst.notes && <p className="text-xs text-muted-foreground">📝 {inst.notes}</p>}
                     </div>
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Shareholder, Payment, Expense, Notification, Activity, Director, DirectorRole, Installment, ProjectSetting, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
+import { Shareholder, Payment, Expense, Notification, Activity, Director, DirectorRole, Installment, ProjectSetting, ProjectContent, RentalConfig, RentalCollection, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
 
 interface AppContextType {
   shareholders: Shareholder[];
@@ -12,6 +12,9 @@ interface AppContextType {
   directorRoles: DirectorRole[];
   installments: Installment[];
   settings: Record<string, string>;
+  projectContent: Record<string, any>;
+  rentalConfig: RentalConfig | null;
+  rentalCollections: RentalCollection[];
   loading: boolean;
   addShareholder: (s: Omit<Shareholder, 'id' | 'total_paid' | 'status' | 'created_at'>) => Promise<void>;
   updateShareholder: (id: string, s: Partial<Shareholder>) => Promise<void>;
@@ -27,6 +30,10 @@ interface AppContextType {
   addInstallment: (i: Omit<Installment, 'id' | 'created_at'>) => Promise<void>;
   deleteInstallment: (id: string) => Promise<void>;
   updateSetting: (key: string, value: string) => Promise<void>;
+  updateProjectContent: (section: string, content: any) => Promise<void>;
+  updateRentalConfig: (c: Partial<RentalConfig>) => Promise<void>;
+  addRentalCollection: (c: Omit<RentalCollection, 'id' | 'created_at'>) => Promise<void>;
+  deleteRentalCollection: (id: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   getShareholderPayments: (id: string) => Payment[];
@@ -47,10 +54,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [directorRoles, setDirectorRoles] = useState<DirectorRole[]>([]);
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [projectContent, setProjectContent] = useState<Record<string, any>>({});
+  const [rentalConfig, setRentalConfig] = useState<RentalConfig | null>(null);
+  const [rentalCollections, setRentalCollections] = useState<RentalCollection[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [shRes, payRes, expRes, notRes, actRes, dirRes, rolesRes, instRes, setRes] = await Promise.all([
+    const [shRes, payRes, expRes, notRes, actRes, dirRes, rolesRes, instRes, setRes, pcRes, rcRes, rclRes] = await Promise.all([
       supabase.from('shareholders').select('*').order('created_at', { ascending: false }),
       supabase.from('payments').select('*').order('date', { ascending: false }),
       supabase.from('expenses').select('*').order('date', { ascending: false }),
@@ -60,6 +70,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       (supabase.from as any)('director_roles').select('*').order('display_order', { ascending: true }),
       supabase.from('installments').select('*').order('year', { ascending: false }).order('month', { ascending: false }),
       (supabase.from as any)('project_settings').select('*'),
+      (supabase.from as any)('project_content').select('*'),
+      (supabase.from as any)('rental_config').select('*').limit(1).maybeSingle(),
+      (supabase.from as any)('rental_collections').select('*').order('year', { ascending: false }).order('month', { ascending: false }),
     ]);
     if (shRes.data) setShareholders(shRes.data as unknown as Shareholder[]);
     if (payRes.data) setPayments(payRes.data as unknown as Payment[]);
@@ -74,6 +87,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       (setRes.data as ProjectSetting[]).forEach(r => { map[r.key] = r.value; });
       setSettings(map);
     }
+    if (pcRes?.data) {
+      const cmap: Record<string, any> = {};
+      (pcRes.data as any[]).forEach(r => { cmap[r.section] = r.content; });
+      setProjectContent(cmap);
+    }
+    if (rcRes?.data) setRentalConfig(rcRes.data as unknown as RentalConfig);
+    if (rclRes?.data) setRentalCollections(rclRes.data as unknown as RentalCollection[]);
     setLoading(false);
   }, []);
 
@@ -220,6 +240,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await fetchAll();
   }, [fetchAll]);
 
+  const updateProjectContent = useCallback(async (section: string, content: any) => {
+    const { data: existing } = await (supabase.from as any)('project_content').select('id').eq('section', section).maybeSingle();
+    if (existing?.id) {
+      await (supabase.from as any)('project_content').update({ content, updated_at: new Date().toISOString() }).eq('id', existing.id);
+    } else {
+      await (supabase.from as any)('project_content').insert({ section, content });
+    }
+    await fetchAll();
+  }, [fetchAll]);
+
+  const updateRentalConfig = useCallback(async (c: Partial<RentalConfig>) => {
+    if (rentalConfig?.id) {
+      await (supabase.from as any)('rental_config').update({ ...c, updated_at: new Date().toISOString() }).eq('id', rentalConfig.id);
+    } else {
+      await (supabase.from as any)('rental_config').insert(c);
+    }
+    await fetchAll();
+  }, [fetchAll, rentalConfig]);
+
+  const addRentalCollection = useCallback(async (c: Omit<RentalCollection, 'id' | 'created_at'>) => {
+    await (supabase.from as any)('rental_collections').insert(c);
+    await addNotification(`ভাড়া আদায় ৳${c.amount.toLocaleString()} (${c.month}/${c.year})`, 'expense');
+    await addActivity(`ভাড়া আদায় ৳${c.amount.toLocaleString()}`, 'expense');
+    await fetchAll();
+  }, [fetchAll]);
+
+  const deleteRentalCollection = useCallback(async (id: string) => {
+    await (supabase.from as any)('rental_collections').delete().eq('id', id);
+    await fetchAll();
+  }, [fetchAll]);
+
   const markNotificationRead = useCallback(async (id: string) => {
     await supabase.from('notifications').update({ read: true } as any).eq('id', id);
     await fetchAll();
@@ -244,13 +295,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      shareholders, payments, expenses, notifications, activities, directors, directorRoles, installments, settings, loading,
+      shareholders, payments, expenses, notifications, activities, directors, directorRoles, installments, settings,
+      projectContent, rentalConfig, rentalCollections, loading,
       addShareholder, updateShareholder, deleteShareholder,
       addPayment, deletePayment, addExpense,
       addDirector, updateDirector, deleteDirector,
       addDirectorRole, deleteDirectorRole,
       addInstallment, deleteInstallment,
-      updateSetting,
+      updateSetting, updateProjectContent,
+      updateRentalConfig, addRentalCollection, deleteRentalCollection,
       markNotificationRead, markAllNotificationsRead,
       getShareholderPayments, getShareholderInstallments, getShareholder,
       refresh: fetchAll,

@@ -285,12 +285,18 @@ export default function Installments() {
               <div className="space-y-2 max-h-72 overflow-y-auto">
                 {viewedInstallments.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">No installments yet</p>}
                 {viewedInstallments.map(inst => (
-                  <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="text-sm font-medium text-card-foreground">৳{inst.amount.toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground">{MONTHS[inst.month - 1]} {inst.year} • {inst.date}</p>
+                  <div key={inst.id} className="p-3 rounded-lg bg-muted/50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-card-foreground">৳{inst.amount.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">{MONTHS[inst.month - 1]} {inst.year} • {inst.date}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">Installment</Badge>
                     </div>
-                    <Badge className="bg-success text-success-foreground">Paid</Badge>
+                    {inst.screenshot_url && (
+                      <img src={inst.screenshot_url} alt="Installment slip" className="w-full max-h-64 object-contain rounded-md border border-border" />
+                    )}
+                    {inst.notes && <p className="text-xs text-muted-foreground">📝 {inst.notes}</p>}
                   </div>
                 ))}
               </div>
