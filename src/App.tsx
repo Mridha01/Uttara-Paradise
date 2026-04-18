@@ -16,6 +16,7 @@ import Directors from "@/pages/Directors";
 import Installments from "@/pages/Installments";
 import Rental from "@/pages/Rental";
 import Login from "@/pages/Login";
+import Portal from "@/pages/Portal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <AppProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/portal/:id" element={<Portal />} />
               <Route path="*" element={
                 <Layout>
                   <Routes>

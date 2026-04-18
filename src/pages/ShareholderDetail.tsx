@@ -1,17 +1,31 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, Link2, Copy, ExternalLink } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { INSTALLMENT_MONTHS, INSTALLMENT_AMOUNT } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 export default function ShareholderDetail() {
   const { id } = useParams<{ id: string }>();
   const { getShareholder, getShareholderPayments, getShareholderInstallments, settings, loading } = useApp();
+  const { isAdmin } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+
+  const portalUrl = id ? `${window.location.origin}/portal/${id}` : '';
+  const copyPortalLink = async () => {
+    try {
+      await navigator.clipboard.writeText(portalUrl);
+      toast.success('পোর্টাল লিংক কপি হয়েছে! শেয়ারহোল্ডারকে পাঠান।');
+    } catch {
+      toast.error('কপি করতে ব্যর্থ');
+    }
+  };
 
   const shareholder = getShareholder(id!);
   const payments = getShareholderPayments(id!);
@@ -35,9 +49,21 @@ export default function ShareholderDetail() {
 
   return (
     <div className="space-y-4">
-      <Link to="/shareholders" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Shareholders
-      </Link>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <Link to="/shareholders" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Shareholders
+        </Link>
+        <div className="flex items-center gap-2">
+          <a href={portalUrl} target="_blank" rel="noopener noreferrer">
+            <Button size="sm" variant="outline" className="gap-2"><ExternalLink className="w-3.5 h-3.5" /> পোর্টাল প্রিভিউ</Button>
+          </a>
+          {isAdmin && (
+            <Button size="sm" onClick={copyPortalLink} className="gap-2 gradient-primary text-primary-foreground">
+              <Copy className="w-3.5 h-3.5" /> পোর্টাল লিংক কপি
+            </Button>
+          )}
+        </div>
+      </div>
 
       <Card className="shadow-card">
         <CardContent className="p-5">
