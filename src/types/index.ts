@@ -118,6 +118,17 @@ export interface RentalCollection {
   created_at: string;
 }
 
+export interface PrivateExpense {
+  id: string;
+  title: string;
+  amount: number;
+  date: string;
+  notes?: string;
+  category?: string;
+  created_at: string;
+}
+
+
 // Defaults — these are overridden at runtime by values from project_settings table
 export const TOTAL_SHARE_AMOUNT = 550000;
 export const MAX_BOOKING_AMOUNT = 50000;
