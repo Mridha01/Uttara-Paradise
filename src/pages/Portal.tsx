@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Building2, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, CheckCircle2, XCircle } from 'lucide-react';
+import { Building2, Phone, MapPin, Calendar, CreditCard, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -165,10 +165,7 @@ export default function Portal() {
                         <p className="text-xs text-muted-foreground">{p.date}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'বুকিং' : 'বাকি পেমেন্ট'}</Badge>
-                      {p.screenshot_url && <ImageIcon className="w-4 h-4 text-primary" />}
-                    </div>
+                    <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'বুকিং' : 'বাকি পেমেন্ট'}</Badge>
                   </button>
                 ))}
               </div>
@@ -225,7 +222,7 @@ export default function Portal() {
         </p>
       </div>
 
-      {/* Payment popup */}
+      {/* Payment popup — slip images intentionally hidden for privacy */}
       <Dialog open={!!selectedPayment} onOpenChange={(o) => !o && setSelectedPayment(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>পেমেন্ট বিবরণ</DialogTitle></DialogHeader>
@@ -237,17 +234,16 @@ export default function Portal() {
                 <div><p className="text-muted-foreground text-xs">তারিখ</p><p className="font-medium text-card-foreground">{selectedPayment.date}</p></div>
               </div>
               {selectedPayment.notes && <div><p className="text-xs text-muted-foreground">নোট</p><p className="text-sm">{selectedPayment.notes}</p></div>}
-              {selectedPayment.screenshot_url && (
-                <div><p className="text-xs text-muted-foreground mb-2">পেমেন্ট স্লিপ</p>
-                  <img src={selectedPayment.screenshot_url} alt="slip" className="w-full rounded-lg border border-border max-h-96 object-contain" />
-                </div>
-              )}
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 text-xs text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                <span>গোপনীয়তার জন্য পেমেন্ট স্লিপ এই পাবলিক পোর্টালে দেখানো হয় না। বিস্তারিত স্লিপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।</span>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Installment popup */}
+      {/* Installment popup — slip images intentionally hidden for privacy */}
       <Dialog open={!!selectedInstallment} onOpenChange={(o) => !o && setSelectedInstallment(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>ইনস্টলমেন্ট বিবরণ</DialogTitle></DialogHeader>
@@ -259,11 +255,10 @@ export default function Portal() {
                 <div><p className="text-muted-foreground text-xs">তারিখ</p><p className="font-medium">{selectedInstallment.date}</p></div>
               </div>
               {selectedInstallment.notes && <div><p className="text-xs text-muted-foreground">নোট</p><p className="text-sm">{selectedInstallment.notes}</p></div>}
-              {selectedInstallment.screenshot_url && (
-                <div><p className="text-xs text-muted-foreground mb-2">স্লিপ</p>
-                  <img src={selectedInstallment.screenshot_url} alt="slip" className="w-full rounded-lg border border-border max-h-96 object-contain" />
-                </div>
-              )}
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 text-xs text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                <span>গোপনীয়তার জন্য পেমেন্ট স্লিপ এই পাবলিক পোর্টালে দেখানো হয় না।</span>
+              </div>
             </div>
           )}
         </DialogContent>
