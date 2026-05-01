@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { uploadImage } from '@/lib/storage';
 import {
@@ -23,7 +24,7 @@ import {
 const ITEMS_PER_PAGE = 12;
 
 export default function Shareholders() {
-  const { shareholders, addShareholder, updateShareholder, deleteShareholder, loading } = useApp();
+  const { shareholders, addShareholder, updateShareholder, deleteShareholder, directors, loading } = useApp();
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -34,8 +35,8 @@ export default function Shareholders() {
   const [submitting, setSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
-  const [form, setForm] = useState({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1' });
-  const [editForm, setEditForm] = useState({ name: '', phone: '', address: '', booking_date: '', num_shares: '1', profile_image_url: '' });
+  const [form, setForm] = useState({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1', referred_by_director_id: '' });
+  const [editForm, setEditForm] = useState({ name: '', phone: '', address: '', booking_date: '', num_shares: '1', profile_image_url: '', referred_by_director_id: '' });
 
   const filtered = shareholders.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search));
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -55,8 +56,9 @@ export default function Shareholders() {
         profile_image_url: imageUrl, booking_date: form.booking_date,
         num_shares: Number(form.num_shares) || 1,
         total_share: (Number(form.num_shares) || 1) * TOTAL_SHARE_AMOUNT,
+        referred_by_director_id: form.referred_by_director_id || null,
       });
-      setForm({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1' });
+      setForm({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1', referred_by_director_id: '' });
       setImageFile(null);
       setDialogOpen(false);
       toast.success('Shareholder added!');
@@ -69,7 +71,7 @@ export default function Shareholders() {
     const s = shareholders.find(sh => sh.id === id);
     if (!s) return;
     setSelectedId(id);
-    setEditForm({ name: s.name, phone: s.phone, address: s.address, booking_date: s.booking_date, num_shares: String(s.num_shares), profile_image_url: s.profile_image_url });
+    setEditForm({ name: s.name, phone: s.phone, address: s.address, booking_date: s.booking_date, num_shares: String(s.num_shares), profile_image_url: s.profile_image_url, referred_by_director_id: s.referred_by_director_id || '' });
     setEditImageFile(null);
     setEditDialogOpen(true);
   };
@@ -87,6 +89,7 @@ export default function Shareholders() {
         name: editForm.name, phone: editForm.phone, address: editForm.address,
         booking_date: editForm.booking_date, profile_image_url: imageUrl,
         num_shares: Number(editForm.num_shares) || 1,
+        referred_by_director_id: editForm.referred_by_director_id || null,
       });
       setEditDialogOpen(false);
       toast.success('Updated!');
@@ -125,6 +128,18 @@ export default function Shareholders() {
                 <div><Label>Address</Label><Input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} /></div>
                 <div><Label>Booking Date</Label><Input type="date" value={form.booking_date} onChange={e => setForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
                 <div><Label>Number of Shares</Label><Input type="number" min={1} max={10} value={form.num_shares} onChange={e => setForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
+                {isAdmin && (
+                  <div>
+                    <Label>Referred By Director</Label>
+                    <Select value={form.referred_by_director_id || 'none'} onValueChange={v => setForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
+                      <SelectTrigger><SelectValue placeholder="Select director" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">— None —</SelectItem>
+                        {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div>
                   <Label>Profile Image</Label>
                   <Input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
@@ -211,6 +226,16 @@ export default function Shareholders() {
             <div><Label>Address</Label><Input value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} /></div>
             <div><Label>Booking Date</Label><Input type="date" value={editForm.booking_date} onChange={e => setEditForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
             <div><Label>Number of Shares</Label><Input type="number" min={1} max={10} value={editForm.num_shares} onChange={e => setEditForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
+            <div>
+              <Label>Referred By Director</Label>
+              <Select value={editForm.referred_by_director_id || 'none'} onValueChange={v => setEditForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
+                <SelectTrigger><SelectValue placeholder="Select director" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label>Profile Image</Label>
               <Input type="file" accept="image/*" onChange={e => setEditImageFile(e.target.files?.[0] || null)} />
