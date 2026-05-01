@@ -11,6 +11,7 @@ export interface Shareholder {
   total_share: number;
   total_paid: number;
   status: 'booked' | 'partial' | 'fully_paid';
+  referred_by_director_id?: string | null;
   created_at: string;
 }
 
