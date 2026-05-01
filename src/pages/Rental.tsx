@@ -251,19 +251,19 @@ export default function Rental() {
           ) : (
             <div className="space-y-2">
               {rentalCollections.map(r => (
-                <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">{MONTHS[r.month - 1].slice(0, 3)}</div>
-                    <div>
-                      <p className="text-sm font-medium text-card-foreground">{MONTHS[r.month - 1]} {r.year}</p>
-                      <p className="text-xs text-muted-foreground">{r.rooms} রুম + {r.shops} দোকান • {r.date}</p>
-                      {r.notes && <p className="text-xs text-muted-foreground italic">📝 {r.notes}</p>}
+                <div key={r.id} className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg gradient-primary flex items-center justify-center text-primary-foreground font-bold text-[10px] sm:text-xs flex-shrink-0">{MONTHS[r.month - 1].slice(0, 3)}</div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-card-foreground truncate">{MONTHS[r.month - 1]} {r.year}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{r.rooms} রুম + {r.shops} দোকান • {r.date}</p>
+                      {r.notes && <p className="text-[10px] sm:text-xs text-muted-foreground italic truncate">📝 {r.notes}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-success text-success-foreground">৳{Number(r.amount).toLocaleString()}</Badge>
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <Badge className="bg-success text-success-foreground text-[10px] sm:text-xs px-1.5 sm:px-2">৳{Number(r.amount).toLocaleString()}</Badge>
                     {r.screenshot_url && (
-                      <a href={r.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">View</a>
+                      <a href={r.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline hidden sm:inline">View</a>
                     )}
                     {isAdmin && (
                       <button onClick={() => setDeleteId(r.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
