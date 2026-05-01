@@ -225,6 +225,36 @@ export type Database = {
           },
         ]
       }
+      private_expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          title: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          title: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       project_content: {
         Row: {
           content: Json
@@ -349,6 +379,7 @@ export type Database = {
           num_shares: number
           phone: string
           profile_image_url: string | null
+          referred_by_director_id: string | null
           status: string
           total_paid: number
           total_share: number
@@ -362,6 +393,7 @@ export type Database = {
           num_shares?: number
           phone: string
           profile_image_url?: string | null
+          referred_by_director_id?: string | null
           status?: string
           total_paid?: number
           total_share?: number
@@ -375,6 +407,7 @@ export type Database = {
           num_shares?: number
           phone?: string
           profile_image_url?: string | null
+          referred_by_director_id?: string | null
           status?: string
           total_paid?: number
           total_share?: number

@@ -207,9 +207,9 @@ export default function Installments() {
       </Card>
 
       {/* Month Selector */}
-      <div className="flex gap-3 items-center">
+      <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
         <Select value={String(selectedMonth)} onValueChange={v => setSelectedMonth(Number(v))}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-32 sm:w-40"><SelectValue /></SelectTrigger>
           <SelectContent>{MONTHS.map((m, i) => (<SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>))}</SelectContent>
         </Select>
         <Input type="number" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="w-24" />
@@ -224,23 +224,23 @@ export default function Installments() {
               const paid = paidIds.has(s.id);
               const inst = currentMonthInstallments.find(i => i.shareholder_id === s.id);
               return (
-                <div key={s.id} className={`flex items-center justify-between p-3 rounded-lg ${paid ? 'bg-success/10' : 'bg-destructive/5'}`}>
-                  <div className="flex items-center gap-3">
-                    {paid ? <Check className="w-5 h-5 text-success" /> : <XIcon className="w-5 h-5 text-destructive" />}
+                <div key={s.id} className={`flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-lg ${paid ? 'bg-success/10' : 'bg-destructive/5'}`}>
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    {paid ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-success flex-shrink-0" /> : <XIcon className="w-4 h-4 sm:w-5 sm:h-5 text-destructive flex-shrink-0" />}
                     {s.profile_image_url ? (
-                      <img src={s.profile_image_url} alt={s.name} className="w-8 h-8 rounded-full object-cover" />
+                      <img src={s.profile_image_url} alt={s.name} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs">{s.name.charAt(0)}</div>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-xs flex-shrink-0">{s.name.charAt(0)}</div>
                     )}
-                    <div>
-                      <p className="text-sm font-medium text-card-foreground">{s.name}</p>
-                      <p className="text-xs text-muted-foreground">{s.phone}</p>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-card-foreground truncate">{s.name}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{s.phone}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {paid ? (
                       <>
-                        <Badge className="bg-success text-success-foreground">৳{inst?.amount.toLocaleString()}</Badge>
+                        <Badge className="bg-success text-success-foreground text-[10px] sm:text-xs px-1.5 sm:px-2">৳{inst?.amount.toLocaleString()}</Badge>
                         {isAdmin && (
                           <button onClick={() => inst && setDeleteId(inst.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
                             <Trash2 className="w-3.5 h-3.5" />
@@ -248,7 +248,7 @@ export default function Installments() {
                         )}
                       </>
                     ) : (
-                      <Badge variant="destructive">Unpaid</Badge>
+                      <Badge variant="destructive" className="text-[10px] sm:text-xs">Unpaid</Badge>
                     )}
                   </div>
                 </div>

@@ -11,6 +11,7 @@ export interface Shareholder {
   total_share: number;
   total_paid: number;
   status: 'booked' | 'partial' | 'fully_paid';
+  referred_by_director_id?: string | null;
   created_at: string;
 }
 
@@ -116,6 +117,17 @@ export interface RentalCollection {
   screenshot_url?: string;
   created_at: string;
 }
+
+export interface PrivateExpense {
+  id: string;
+  title: string;
+  amount: number;
+  date: string;
+  notes?: string;
+  category?: string;
+  created_at: string;
+}
+
 
 // Defaults — these are overridden at runtime by values from project_settings table
 export const TOTAL_SHARE_AMOUNT = 550000;
