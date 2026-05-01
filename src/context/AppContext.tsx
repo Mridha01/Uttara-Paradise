@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Shareholder, Payment, Expense, Notification, Activity, Director, DirectorRole, Installment, ProjectSetting, ProjectContent, RentalConfig, RentalCollection, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
+import { Shareholder, Payment, Expense, Notification, Activity, Director, DirectorRole, Installment, ProjectSetting, ProjectContent, RentalConfig, RentalCollection, PrivateExpense, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT } from '@/types';
 
 interface AppContextType {
   shareholders: Shareholder[];
@@ -15,6 +15,7 @@ interface AppContextType {
   projectContent: Record<string, any>;
   rentalConfig: RentalConfig | null;
   rentalCollections: RentalCollection[];
+  privateExpenses: PrivateExpense[];
   loading: boolean;
   addShareholder: (s: Omit<Shareholder, 'id' | 'total_paid' | 'status' | 'created_at'>) => Promise<void>;
   updateShareholder: (id: string, s: Partial<Shareholder>) => Promise<void>;
@@ -22,6 +23,8 @@ interface AppContextType {
   addPayment: (p: Omit<Payment, 'id' | 'created_at'>) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
   addExpense: (e: Omit<Expense, 'id' | 'created_at'>) => Promise<void>;
+  addPrivateExpense: (e: Omit<PrivateExpense, 'id' | 'created_at'>) => Promise<void>;
+  deletePrivateExpense: (id: string) => Promise<void>;
   addDirector: (d: Omit<Director, 'id' | 'created_at'>) => Promise<void>;
   updateDirector: (id: string, d: Partial<Director>) => Promise<void>;
   deleteDirector: (id: string) => Promise<void>;
@@ -57,10 +60,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [projectContent, setProjectContent] = useState<Record<string, any>>({});
   const [rentalConfig, setRentalConfig] = useState<RentalConfig | null>(null);
   const [rentalCollections, setRentalCollections] = useState<RentalCollection[]>([]);
+  const [privateExpenses, setPrivateExpenses] = useState<PrivateExpense[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [shRes, payRes, expRes, notRes, actRes, dirRes, rolesRes, instRes, setRes, pcRes, rcRes, rclRes] = await Promise.all([
+    const [shRes, payRes, expRes, notRes, actRes, dirRes, rolesRes, instRes, setRes, pcRes, rcRes, rclRes, peRes] = await Promise.all([
       supabase.from('shareholders').select('*').order('created_at', { ascending: false }),
       supabase.from('payments').select('*').order('date', { ascending: false }),
       supabase.from('expenses').select('*').order('date', { ascending: false }),
@@ -73,6 +77,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       (supabase.from as any)('project_content').select('*'),
       (supabase.from as any)('rental_config').select('*').limit(1).maybeSingle(),
       (supabase.from as any)('rental_collections').select('*').order('year', { ascending: false }).order('month', { ascending: false }),
+      (supabase.from as any)('private_expenses').select('*').order('date', { ascending: false }),
     ]);
     if (shRes.data) setShareholders(shRes.data as unknown as Shareholder[]);
     if (payRes.data) setPayments(payRes.data as unknown as Payment[]);
@@ -94,6 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     if (rcRes?.data) setRentalConfig(rcRes.data as unknown as RentalConfig);
     if (rclRes?.data) setRentalCollections(rclRes.data as unknown as RentalCollection[]);
+    if (peRes?.data) setPrivateExpenses(peRes.data as unknown as PrivateExpense[]);
     setLoading(false);
   }, []);
 
@@ -123,6 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       name: s.name, phone: s.phone, address: s.address,
       profile_image_url: s.profile_image_url, booking_date: s.booking_date,
       num_shares: s.num_shares, total_share: totalShare,
+      referred_by_director_id: s.referred_by_director_id || null,
     } as any);
     await addNotification(`New shareholder: ${s.name}`, 'shareholder');
     await addActivity(`${s.name} added as shareholder`, 'shareholder');
@@ -184,6 +191,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await supabase.from('expenses').insert({ title: e.title, amount: e.amount, date: e.date, notes: e.notes || '' } as any);
     await addNotification(`Expense added: ${e.title} ৳${e.amount.toLocaleString()}`, 'expense');
     await addActivity(`${e.title} expense added ৳${e.amount.toLocaleString()}`, 'expense');
+    await fetchAll();
+  }, [fetchAll]);
+
+  const addPrivateExpense = useCallback(async (e: Omit<PrivateExpense, 'id' | 'created_at'>) => {
+    await (supabase.from as any)('private_expenses').insert({ title: e.title, amount: e.amount, date: e.date, notes: e.notes || '', category: e.category || '' });
+    await fetchAll();
+  }, [fetchAll]);
+
+  const deletePrivateExpense = useCallback(async (id: string) => {
+    await (supabase.from as any)('private_expenses').delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
@@ -296,9 +313,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       shareholders, payments, expenses, notifications, activities, directors, directorRoles, installments, settings,
-      projectContent, rentalConfig, rentalCollections, loading,
+      projectContent, rentalConfig, rentalCollections, privateExpenses, loading,
       addShareholder, updateShareholder, deleteShareholder,
       addPayment, deletePayment, addExpense,
+      addPrivateExpense, deletePrivateExpense,
       addDirector, updateDirector, deleteDirector,
       addDirectorRole, deleteDirectorRole,
       addInstallment, deleteInstallment,
