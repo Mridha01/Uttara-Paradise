@@ -66,6 +66,7 @@ export type Database = {
           name: string
           phone: string | null
           role: string | null
+          signature_url: string | null
         }
         Insert: {
           bio?: string | null
@@ -76,6 +77,7 @@ export type Database = {
           name: string
           phone?: string | null
           role?: string | null
+          signature_url?: string | null
         }
         Update: {
           bio?: string | null
@@ -86,6 +88,7 @@ export type Database = {
           name?: string
           phone?: string | null
           role?: string | null
+          signature_url?: string | null
         }
         Relationships: []
       }
@@ -191,6 +194,7 @@ export type Database = {
           date: string
           id: string
           notes: string | null
+          receipt_no: string | null
           screenshot_url: string | null
           shareholder_id: string
           type: string
@@ -201,6 +205,7 @@ export type Database = {
           date?: string
           id?: string
           notes?: string | null
+          receipt_no?: string | null
           screenshot_url?: string | null
           shareholder_id: string
           type?: string
@@ -211,6 +216,7 @@ export type Database = {
           date?: string
           id?: string
           notes?: string | null
+          receipt_no?: string | null
           screenshot_url?: string | null
           shareholder_id?: string
           type?: string
@@ -378,6 +384,7 @@ export type Database = {
           name: string
           num_shares: number
           phone: string
+          portal_token: string | null
           profile_image_url: string | null
           referred_by_director_id: string | null
           status: string
@@ -392,6 +399,7 @@ export type Database = {
           name: string
           num_shares?: number
           phone: string
+          portal_token?: string | null
           profile_image_url?: string | null
           referred_by_director_id?: string | null
           status?: string
@@ -406,6 +414,7 @@ export type Database = {
           name?: string
           num_shares?: number
           phone?: string
+          portal_token?: string | null
           profile_image_url?: string | null
           referred_by_director_id?: string | null
           status?: string
