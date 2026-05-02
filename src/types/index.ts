@@ -12,6 +12,7 @@ export interface Shareholder {
   total_paid: number;
   status: 'booked' | 'partial' | 'fully_paid';
   referred_by_director_id?: string | null;
+  portal_token?: string | null;
   created_at: string;
 }
 
@@ -22,6 +23,7 @@ export interface Payment {
   date: string;
   type: 'booking' | 'remaining';
   screenshot_url: string;
+  receipt_no?: string | null;
   notes?: string;
   created_at: string;
 }
@@ -57,6 +59,7 @@ export interface Director {
   role: string;
   bio: string;
   image_url: string;
+  signature_url?: string | null;
   display_order: number;
   created_at: string;
 }
