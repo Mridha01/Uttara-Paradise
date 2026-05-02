@@ -105,19 +105,25 @@ export default function ShareholderDetail() {
       <Card className="shadow-card">
         <CardHeader className="pb-2"><CardTitle className="text-base">Payment History ({payments.length})</CardTitle></CardHeader>
         <CardContent>
+          {!isAdmin && payments.length > 0 && (
+            <div className="flex items-center gap-2 p-3 mb-3 rounded-lg bg-muted/40 text-xs text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
+              <span>গোপনীয়তার জন্য পেমেন্ট স্লিপ সর্বজনীন ভিউতে দেখানো হয় না। নিজের সম্পূর্ণ বিবরণের জন্য আপনার ব্যক্তিগত পোর্টাল লিংক ব্যবহার করুন (অ্যাডমিনের কাছ থেকে নিন)।</span>
+            </div>
+          )}
           {payments.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">No payments yet</p>
           ) : (
             <div className="space-y-3">
               {payments.map(p => (
-                <div key={p.id} onClick={() => setSelectedPayment(p.id)} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-colors">
+                <div key={p.id} onClick={() => isAdmin && setSelectedPayment(p.id)} className={`flex items-center justify-between p-3 rounded-lg bg-muted/50 ${isAdmin ? 'hover:bg-muted cursor-pointer' : ''} transition-colors`}>
                   <div className="flex items-center gap-3">
                     <CreditCard className="w-4 h-4 text-muted-foreground" />
                     <div><p className="text-sm font-medium text-card-foreground">৳{p.amount.toLocaleString()}</p><p className="text-xs text-muted-foreground">{p.date}</p></div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'Booking' : 'Remaining'}</Badge>
-                    {p.screenshot_url && <ImageIcon className="w-4 h-4 text-primary" />}
+                    {isAdmin && p.screenshot_url && <ImageIcon className="w-4 h-4 text-primary" />}
                   </div>
                 </div>
               ))}
@@ -161,7 +167,7 @@ export default function ShareholderDetail() {
                         </div>
                         <Badge variant="outline" className="text-xs">Installment</Badge>
                       </div>
-                      {inst.screenshot_url && (
+                      {isAdmin && inst.screenshot_url && (
                         <img src={inst.screenshot_url} alt="Installment slip" className="w-full max-h-64 object-contain rounded-md border border-border" />
                       )}
                       {inst.notes && <p className="text-xs text-muted-foreground">📝 {inst.notes}</p>}
