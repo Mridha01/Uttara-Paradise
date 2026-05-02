@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, Link2, Copy, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, Copy, ExternalLink, ShieldCheck } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { INSTALLMENT_MONTHS, INSTALLMENT_AMOUNT } from '@/types';
@@ -17,17 +17,17 @@ export default function ShareholderDetail() {
   const { isAdmin } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
 
-  const portalUrl = id ? `${window.location.origin}/portal/${id}` : '';
+  const shareholder = getShareholder(id!);
+  const portalUrl = id && shareholder?.portal_token ? `${window.location.origin}/portal/${id}?token=${shareholder.portal_token}` : '';
   const copyPortalLink = async () => {
     try {
       await navigator.clipboard.writeText(portalUrl);
-      toast.success('পোর্টাল লিংক কপি হয়েছে! শেয়ারহোল্ডারকে পাঠান।');
+      toast.success('গোপন পোর্টাল লিংক কপি হয়েছে! শুধু এই শেয়ারহোল্ডারকে পাঠান।');
     } catch {
       toast.error('কপি করতে ব্যর্থ');
     }
   };
 
-  const shareholder = getShareholder(id!);
   const payments = getShareholderPayments(id!);
   const installments = getShareholderInstallments(id!);
 
@@ -53,16 +53,16 @@ export default function ShareholderDetail() {
         <Link to="/shareholders" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Shareholders
         </Link>
-        <div className="flex items-center gap-2">
-          <a href={portalUrl} target="_blank" rel="noopener noreferrer">
-            <Button size="sm" variant="outline" className="gap-2"><ExternalLink className="w-3.5 h-3.5" /> পোর্টাল প্রিভিউ</Button>
-          </a>
-          {isAdmin && (
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <a href={portalUrl} target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="outline" className="gap-2"><ExternalLink className="w-3.5 h-3.5" /> পোর্টাল প্রিভিউ</Button>
+            </a>
             <Button size="sm" onClick={copyPortalLink} className="gap-2 gradient-primary text-primary-foreground">
               <Copy className="w-3.5 h-3.5" /> পোর্টাল লিংক কপি
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <Card className="shadow-card">
