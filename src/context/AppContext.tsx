@@ -20,7 +20,7 @@ interface AppContextType {
   addShareholder: (s: Omit<Shareholder, 'id' | 'total_paid' | 'status' | 'created_at'>) => Promise<void>;
   updateShareholder: (id: string, s: Partial<Shareholder>) => Promise<void>;
   deleteShareholder: (id: string) => Promise<void>;
-  addPayment: (p: Omit<Payment, 'id' | 'created_at'>) => Promise<void>;
+  addPayment: (p: Omit<Payment, 'id' | 'created_at'>) => Promise<Payment | null>;
   deletePayment: (id: string) => Promise<void>;
   addExpense: (e: Omit<Expense, 'id' | 'created_at'>) => Promise<void>;
   addPrivateExpense: (e: Omit<PrivateExpense, 'id' | 'created_at'>) => Promise<void>;
@@ -125,11 +125,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addShareholder = useCallback(async (s: Omit<Shareholder, 'id' | 'total_paid' | 'status' | 'created_at'>) => {
     const totalShare = s.num_shares * TOTAL_SHARE_AMOUNT;
+    // Generate a portal token (random 32-hex chars)
+    const tokenBytes = crypto.getRandomValues(new Uint8Array(16));
+    const portalToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('');
     await supabase.from('shareholders').insert({
       name: s.name, phone: s.phone, address: s.address,
       profile_image_url: s.profile_image_url, booking_date: s.booking_date,
       num_shares: s.num_shares, total_share: totalShare,
       referred_by_director_id: s.referred_by_director_id || null,
+      portal_token: portalToken,
     } as any);
     await addNotification(`New shareholder: ${s.name}`, 'shareholder');
     await addActivity(`${s.name} added as shareholder`, 'shareholder');
@@ -151,25 +155,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await fetchAll();
   }, [fetchAll]);
 
-  const addPayment = useCallback(async (p: Omit<Payment, 'id' | 'created_at'>) => {
+  const addPayment = useCallback(async (p: Omit<Payment, 'id' | 'created_at'>): Promise<Payment | null> => {
     const sh = shareholders.find(s => s.id === p.shareholder_id);
-    if (!sh) return;
-    if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT * (sh.num_shares || 1)) return;
-    if (sh.total_paid + p.amount > sh.total_share) return;
+    if (!sh) return null;
+    if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT * (sh.num_shares || 1)) return null;
+    if (sh.total_paid + p.amount > sh.total_share) return null;
 
-    await supabase.from('payments').insert({
+    // Generate human-readable receipt no: UV-YYYYMM-XXXX (sequence per month)
+    const d = new Date(p.date);
+    const ym = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const monthCount = payments.filter(x => {
+      const xd = new Date(x.date);
+      return xd.getFullYear() === d.getFullYear() && xd.getMonth() === d.getMonth();
+    }).length;
+    const receiptNo = `UV-${ym}-${String(monthCount + 1).padStart(4, '0')}`;
+
+    const { data: inserted } = await supabase.from('payments').insert({
       shareholder_id: p.shareholder_id, amount: p.amount, date: p.date,
       type: p.type, screenshot_url: p.screenshot_url, notes: p.notes || '',
-    } as any);
+      receipt_no: receiptNo,
+    } as any).select().single();
 
     const newTotalPaid = sh.total_paid + p.amount;
     const newStatus = newTotalPaid >= sh.total_share ? 'fully_paid' : newTotalPaid > 0 ? 'partial' : 'booked';
     await supabase.from('shareholders').update({ total_paid: newTotalPaid, status: newStatus } as any).eq('id', p.shareholder_id);
 
-    await addNotification(`${sh.name} paid ৳${p.amount.toLocaleString()}`, 'payment');
+    await addNotification(`${sh.name} paid ৳${p.amount.toLocaleString()} (${receiptNo})`, 'payment');
     await addActivity(`${sh.name} paid ৳${p.amount.toLocaleString()}`, 'payment');
     await fetchAll();
-  }, [shareholders, fetchAll]);
+    return inserted as unknown as Payment;
+  }, [shareholders, payments, fetchAll]);
 
   const deletePayment = useCallback(async (id: string) => {
     const payment = payments.find(p => p.id === id);

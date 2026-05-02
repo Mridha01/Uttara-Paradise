@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { Plus, Upload, Image as ImageIcon, X, Search, Trash2 } from 'lucide-react';
+import { Plus, Upload, Image as ImageIcon, X, Search, Trash2, FileText } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { MAX_BOOKING_AMOUNT } from '@/types';
+import { MAX_BOOKING_AMOUNT, Payment } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,14 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { uploadImage } from '@/lib/storage';
+import PaymentReceipt from '@/components/PaymentReceipt';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
 export default function Payments() {
-  const { shareholders, payments, addPayment, deletePayment, loading } = useApp();
+  const { shareholders, payments, addPayment, deletePayment, directors, loading } = useApp();
   const { isAdmin } = useAuth();
+  const [receiptPayment, setReceiptPayment] = useState<Payment | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailPayment, setDetailPayment] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -61,10 +63,11 @@ export default function Payments() {
     setSubmitting(true);
     try {
       const screenshotUrl = await uploadImage('payment-screenshots', screenshotFile, 'payments');
-      await addPayment({ shareholder_id: selectedShareholder, amount: numAmount, date, type: paymentType, screenshot_url: screenshotUrl });
+      const newPayment = await addPayment({ shareholder_id: selectedShareholder, amount: numAmount, date, type: paymentType, screenshot_url: screenshotUrl });
       setSelectedShareholder(''); setAmount(''); setScreenshotFile(null); setPreviewUrl('');
       setDialogOpen(false);
-      toast.success('Payment added! ✅');
+      toast.success('Payment added! ✅ Receipt তৈরি হচ্ছে...');
+      if (newPayment) setReceiptPayment(newPayment);
     } catch { toast.error('Failed to add payment'); }
     setSubmitting(false);
   };
@@ -201,6 +204,13 @@ export default function Payments() {
                     <p className="text-sm font-semibold text-card-foreground">৳{p.amount.toLocaleString()}</p>
                     <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'Booking' : 'Remaining'}</Badge>
                     {p.screenshot_url && <ImageIcon className="w-4 h-4 text-primary" />}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setReceiptPayment(p); }}
+                      className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                      title="View Receipt"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                    </button>
                     {isAdmin && (
                       <button onClick={(e) => { e.stopPropagation(); setDeleteId(p.id); }} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                         <Trash2 className="w-3.5 h-3.5" />
@@ -243,6 +253,14 @@ export default function Payments() {
           <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PaymentReceipt
+        payment={receiptPayment}
+        shareholder={receiptPayment ? shareholders.find(s => s.id === receiptPayment.shareholder_id) || null : null}
+        directors={directors}
+        open={!!receiptPayment}
+        onOpenChange={(o) => !o && setReceiptPayment(null)}
+      />
     </div>
   );
 }
