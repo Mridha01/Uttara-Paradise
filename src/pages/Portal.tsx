@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Building2, Phone, MapPin, Calendar, CreditCard, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,26 +12,34 @@ const MONTHS = ['জানুয়ারি', 'ফেব্রুয়ার�
 
 export default function Portal() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const tokenParam = searchParams.get('token') || '';
   const [shareholder, setShareholder] = useState<Shareholder | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null);
 
   useEffect(() => {
     if (!id) return;
     (async () => {
-      const [shRes, payRes, instRes, setRes] = await Promise.all([
-        supabase.from('shareholders').select('*').eq('id', id).maybeSingle(),
+      const shRes = await supabase.from('shareholders').select('*').eq('id', id).maybeSingle();
+      if (!shRes.data) { setNotFound(true); setLoading(false); return; }
+      const sh = shRes.data as unknown as Shareholder;
+      // Token check — portal_token is required and must match
+      if (!sh.portal_token || !tokenParam || sh.portal_token !== tokenParam) {
+        setUnauthorized(true); setLoading(false); return;
+      }
+      const [payRes, instRes, setRes] = await Promise.all([
         supabase.from('payments').select('*').eq('shareholder_id', id).order('date', { ascending: false }),
         supabase.from('installments').select('*').eq('shareholder_id', id).order('year', { ascending: false }).order('month', { ascending: false }),
         (supabase.from as any)('project_settings').select('*'),
       ]);
-      if (!shRes.data) { setNotFound(true); setLoading(false); return; }
-      setShareholder(shRes.data as unknown as Shareholder);
+      setShareholder(sh);
       setPayments((payRes.data || []) as unknown as Payment[]);
       setInstallments((instRes.data || []) as unknown as Installment[]);
       if (setRes?.data) {
@@ -41,10 +49,20 @@ export default function Portal() {
       }
       setLoading(false);
     })();
-  }, [id]);
+  }, [id, tokenParam]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">লোড হচ্ছে...</div>;
+  }
+
+  if (unauthorized) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3 px-4 text-center">
+        <ShieldCheck className="w-12 h-12 text-destructive" />
+        <p className="text-lg font-semibold text-foreground">অবৈধ লিংক</p>
+        <p className="text-sm text-muted-foreground max-w-sm">এই পোর্টাল লিংকটি সঠিক নয় বা মেয়াদ শেষ হয়েছে। সঠিক লিংকের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।</p>
+      </div>
+    );
   }
 
   if (notFound || !shareholder) {
