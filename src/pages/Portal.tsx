@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Shareholder, Payment, Installment, formatBdtBangla, INSTALLMENT_AMOUNT, INSTALLMENT_MONTHS } from '@/types';
+import { PROJECT } from '@/config/project';
 
 const MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
 
@@ -106,8 +107,8 @@ export default function Portal() {
             <Building2 className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1">
-            <h1 className="text-base font-bold text-foreground">Uttara Vilas</h1>
-            <p className="text-xs text-muted-foreground">শেয়ারহোল্ডার পোর্টাল</p>
+            <h1 className="text-base font-bold text-foreground">{PROJECT.name}</h1>
+            <p className="text-xs text-muted-foreground">{PROJECT.nameBn} • শেয়ারহোল্ডার পোর্টাল</p>
           </div>
           <Badge variant="outline" className="text-xs">Read-only</Badge>
         </div>
@@ -240,9 +241,9 @@ export default function Portal() {
         </p>
       </div>
 
-      {/* Payment popup — slip images intentionally hidden for privacy */}
+      {/* Payment popup — token holder is verified, so slips are visible */}
       <Dialog open={!!selectedPayment} onOpenChange={(o) => !o && setSelectedPayment(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>পেমেন্ট বিবরণ</DialogTitle></DialogHeader>
           {selectedPayment && (
             <div className="space-y-3">
@@ -250,20 +251,28 @@ export default function Portal() {
                 <div><p className="text-muted-foreground text-xs">পরিমাণ</p><p className="font-bold text-lg text-card-foreground">৳{Number(selectedPayment.amount).toLocaleString()}</p></div>
                 <div><p className="text-muted-foreground text-xs">ধরন</p><Badge variant="outline">{selectedPayment.type === 'booking' ? 'বুকিং' : 'বাকি'}</Badge></div>
                 <div><p className="text-muted-foreground text-xs">তারিখ</p><p className="font-medium text-card-foreground">{selectedPayment.date}</p></div>
+                {selectedPayment.receipt_no && <div><p className="text-muted-foreground text-xs">রিসিপ্ট নং</p><p className="font-medium text-card-foreground">{selectedPayment.receipt_no}</p></div>}
               </div>
               {selectedPayment.notes && <div><p className="text-xs text-muted-foreground">নোট</p><p className="text-sm">{selectedPayment.notes}</p></div>}
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 text-xs text-muted-foreground">
-                <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
-                <span>গোপনীয়তার জন্য পেমেন্ট স্লিপ এই পাবলিক পোর্টালে দেখানো হয় না। বিস্তারিত স্লিপের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।</span>
-              </div>
+              {selectedPayment.screenshot_url ? (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">পেমেন্ট স্লিপ</p>
+                  <img src={selectedPayment.screenshot_url} alt="Payment slip" className="w-full rounded-lg border border-border max-h-96 object-contain" />
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 text-xs text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span>এই পেমেন্টের জন্য স্লিপ আপলোড করা হয়নি।</span>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Installment popup — slip images intentionally hidden for privacy */}
+      {/* Installment popup — token holder is verified, so slips are visible */}
       <Dialog open={!!selectedInstallment} onOpenChange={(o) => !o && setSelectedInstallment(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>ইনস্টলমেন্ট বিবরণ</DialogTitle></DialogHeader>
           {selectedInstallment && (
             <div className="space-y-3">
@@ -273,10 +282,12 @@ export default function Portal() {
                 <div><p className="text-muted-foreground text-xs">তারিখ</p><p className="font-medium">{selectedInstallment.date}</p></div>
               </div>
               {selectedInstallment.notes && <div><p className="text-xs text-muted-foreground">নোট</p><p className="text-sm">{selectedInstallment.notes}</p></div>}
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 text-xs text-muted-foreground">
-                <ShieldCheck className="w-4 h-4 text-primary flex-shrink-0" />
-                <span>গোপনীয়তার জন্য পেমেন্ট স্লিপ এই পাবলিক পোর্টালে দেখানো হয় না।</span>
-              </div>
+              {selectedInstallment.screenshot_url && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">পেমেন্ট স্লিপ</p>
+                  <img src={selectedInstallment.screenshot_url} alt="Installment slip" className="w-full rounded-lg border border-border max-h-96 object-contain" />
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

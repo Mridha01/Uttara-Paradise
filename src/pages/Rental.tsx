@@ -196,24 +196,24 @@ export default function Rental() {
           <CardTitle className="text-base">📊 Summary — {targetMonths} মাসের লক্ষ্য</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="p-3 rounded-lg bg-primary/10">
-              <p className="text-xs text-muted-foreground">প্রত্যাশিত মাসিক</p>
-              <p className="text-lg font-bold text-primary">{formatBdtBangla(expectedMonthly)}</p>
-              <p className="text-xs text-muted-foreground">{rooms} রুম + {shops} দোকান</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-center">
+            <div className="p-2 sm:p-3 rounded-lg bg-primary/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">প্রত্যাশিত মাসিক</p>
+              <p className="text-sm sm:text-lg font-bold text-primary truncate">{formatBdtBangla(expectedMonthly)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{rooms} রুম + {shops} দোকান</p>
             </div>
-            <div className="p-3 rounded-lg bg-success/10">
-              <p className="text-xs text-muted-foreground">সংগৃহীত</p>
-              <p className="text-lg font-bold text-success">{formatBdtBangla(totalCollected)}</p>
-              <p className="text-xs text-muted-foreground">{monthsCovered} মাস</p>
+            <div className="p-2 sm:p-3 rounded-lg bg-success/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">সংগৃহীত</p>
+              <p className="text-sm sm:text-lg font-bold text-success truncate">{formatBdtBangla(totalCollected)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">{monthsCovered} মাস</p>
             </div>
-            <div className="p-3 rounded-lg bg-warning/10">
-              <p className="text-xs text-muted-foreground">{targetMonths} মাসের লক্ষ্য</p>
-              <p className="text-lg font-bold text-warning">{formatBdtBangla(targetTotal)}</p>
+            <div className="p-2 sm:p-3 rounded-lg bg-warning/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">{targetMonths} মাসের লক্ষ্য</p>
+              <p className="text-sm sm:text-lg font-bold text-warning truncate">{formatBdtBangla(targetTotal)}</p>
             </div>
-            <div className="p-3 rounded-lg bg-destructive/10">
-              <p className="text-xs text-muted-foreground">এখনো বাকি</p>
-              <p className="text-lg font-bold text-destructive">{formatBdtBangla(Math.max(0, targetTotal - totalCollected))}</p>
+            <div className="p-2 sm:p-3 rounded-lg bg-destructive/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">এখনো বাকি</p>
+              <p className="text-sm sm:text-lg font-bold text-destructive truncate">{formatBdtBangla(Math.max(0, targetTotal - totalCollected))}</p>
             </div>
           </div>
           <div>
