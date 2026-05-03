@@ -132,25 +132,25 @@ export default function Installments() {
           <CardTitle className="text-base">📊 {MONTHS_BN[selectedMonth - 1]} {selectedYear} — Monthly Summary</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="p-3 rounded-lg bg-success/10">
-              <p className="text-xs text-muted-foreground">✅ দিয়েছে</p>
-              <p className="text-2xl font-bold text-success">{paidThisMonth}</p>
-              <p className="text-xs text-muted-foreground">জন</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-center">
+            <div className="p-2 sm:p-3 rounded-lg bg-success/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">✅ দিয়েছে</p>
+              <p className="text-xl sm:text-2xl font-bold text-success">{paidThisMonth}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">জন</p>
             </div>
-            <div className="p-3 rounded-lg bg-destructive/10">
-              <p className="text-xs text-muted-foreground">❌ বাকি</p>
-              <p className="text-2xl font-bold text-destructive">{unpaidThisMonth}</p>
-              <p className="text-xs text-muted-foreground">জন</p>
+            <div className="p-2 sm:p-3 rounded-lg bg-destructive/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">❌ বাকি</p>
+              <p className="text-xl sm:text-2xl font-bold text-destructive">{unpaidThisMonth}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">জন</p>
             </div>
-            <div className="p-3 rounded-lg bg-primary/10">
-              <p className="text-xs text-muted-foreground">প্রত্যাশিত</p>
-              <p className="text-lg font-bold text-primary">{formatBdtBangla(expectedMonthly)}</p>
-              <p className="text-xs text-muted-foreground">{totalShareholdersCount} × ৳{monthlyAmount.toLocaleString()}</p>
+            <div className="p-2 sm:p-3 rounded-lg bg-primary/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">প্রত্যাশিত</p>
+              <p className="text-sm sm:text-lg font-bold text-primary truncate">{formatBdtBangla(expectedMonthly)}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{totalShareholdersCount}×৳{monthlyAmount.toLocaleString()}</p>
             </div>
-            <div className="p-3 rounded-lg bg-warning/10">
-              <p className="text-xs text-muted-foreground">এই মাসে বাকি</p>
-              <p className="text-lg font-bold text-warning">{formatBdtBangla(Math.max(0, monthRemaining))}</p>
+            <div className="p-2 sm:p-3 rounded-lg bg-warning/10">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">এই মাসে বাকি</p>
+              <p className="text-sm sm:text-lg font-bold text-warning truncate">{formatBdtBangla(Math.max(0, monthRemaining))}</p>
             </div>
           </div>
           <div>
