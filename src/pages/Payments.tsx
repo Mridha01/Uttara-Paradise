@@ -241,8 +241,13 @@ export default function Payments() {
                 <div><p className="text-muted-foreground">Date</p><p className="font-medium text-card-foreground">{detail.date}</p></div>
                 <div><p className="text-muted-foreground">Recorded</p><p className="font-medium text-card-foreground">{new Date(detail.created_at).toLocaleDateString()}</p></div>
               </div>
-              {detail.screenshot_url && (
+              {isAdmin && detail.screenshot_url && (
                 <div><p className="text-sm text-muted-foreground mb-2">Payment Slip</p><img src={detail.screenshot_url} alt="Payment slip" className="w-full rounded-lg border border-border max-h-96 object-contain" /></div>
+              )}
+              {!isAdmin && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/40 text-xs text-muted-foreground">
+                  🔒 গোপনীয়তার জন্য পেমেন্ট স্লিপ সর্বজনীন ভিউতে দেখানো হয় না। নিজের তথ্যের জন্য আপনার ব্যক্তিগত পোর্টাল লিংক ব্যবহার করুন।
+                </div>
               )}
             </div>
           )}
