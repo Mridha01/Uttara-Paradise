@@ -24,6 +24,7 @@ export default function Directors() {
   const [selected, setSelected] = useState<Director | null>(null);
   const [editing, setEditing] = useState<Partial<Director> | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState({ name: '', role: '', phone: '', bio: '' });
@@ -38,11 +39,15 @@ export default function Directors() {
     setSubmitting(true);
     try {
       let imageUrl = editing.image_url || '';
+      let signatureUrl = editing.signature_url || '';
       if (imageFile) {
         imageUrl = await uploadImage('shareholder-images', imageFile, 'directors');
       }
-      await updateDirector(selected.id, { ...editing, image_url: imageUrl });
-      setEditing(null); setImageFile(null);
+      if (signatureFile) {
+        signatureUrl = await uploadImage('director-signatures', signatureFile, 'sigs');
+      }
+      await updateDirector(selected.id, { ...editing, image_url: imageUrl, signature_url: signatureUrl });
+      setEditing(null); setImageFile(null); setSignatureFile(null);
       setSelected(null);
       toast.success('Director updated!');
     } catch { toast.error('Failed to update'); }
@@ -189,6 +194,19 @@ export default function Directors() {
               </div>
               <div><Label>Phone</Label><Input value={editing.phone || ''} onChange={e => setEditing(p => ({ ...p, phone: e.target.value }))} /></div>
               <div><Label>Bio</Label><Textarea value={editing.bio || ''} onChange={e => setEditing(p => ({ ...p, bio: e.target.value }))} rows={3} /></div>
+              <div className="border border-border rounded-lg p-3 bg-muted/30">
+                <Label className="text-sm font-semibold">✍️ Signature (রিসিপ্টে দেখা যাবে)</Label>
+                <p className="text-xs text-muted-foreground mb-2">PNG বা JPG, transparent background ভাল হয়</p>
+                {(editing.signature_url || signatureFile) && (
+                  <div className="bg-white border border-border rounded p-2 mb-2 inline-block">
+                    <img src={signatureFile ? URL.createObjectURL(signatureFile) : editing.signature_url || ''} alt="signature" className="h-16 max-w-[200px] object-contain" />
+                  </div>
+                )}
+                <Input type="file" accept="image/*" onChange={e => setSignatureFile(e.target.files?.[0] || null)} />
+                {editing.signature_url && (
+                  <button type="button" onClick={() => setEditing(p => ({ ...p, signature_url: '' }))} className="text-xs text-destructive hover:underline mt-1">সিগনেচার সরান</button>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button onClick={handleSave} className="flex-1 gradient-primary text-primary-foreground gap-2" disabled={submitting}><Save className="w-4 h-4" /> {submitting ? 'Saving...' : 'Save'}</Button>
                 <Button onClick={() => setEditing(null)} variant="outline" className="gap-2"><X className="w-4 h-4" /> Cancel</Button>
