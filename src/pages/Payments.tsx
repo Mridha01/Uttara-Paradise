@@ -203,14 +203,16 @@ export default function Payments() {
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-card-foreground">৳{p.amount.toLocaleString()}</p>
                     <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'Booking' : 'Remaining'}</Badge>
-                    {p.screenshot_url && <ImageIcon className="w-4 h-4 text-primary" />}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setReceiptPayment(p); }}
-                      className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                      title="View Receipt"
-                    >
-                      <FileText className="w-3.5 h-3.5" />
-                    </button>
+                    {isAdmin && p.screenshot_url && <ImageIcon className="w-4 h-4 text-primary" />}
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setReceiptPayment(p); }}
+                        className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                        title="View Receipt"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     {isAdmin && (
                       <button onClick={(e) => { e.stopPropagation(); setDeleteId(p.id); }} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                         <Trash2 className="w-3.5 h-3.5" />
