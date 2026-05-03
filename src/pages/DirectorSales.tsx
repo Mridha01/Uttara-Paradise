@@ -80,23 +80,23 @@ export default function DirectorSales() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="shadow-card border-primary/40">
           <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">মোট বিক্রিত</p>
-            <p className="text-2xl font-bold text-primary">{totalSharesSold} / {TARGET_TOTAL}</p>
-            <p className="text-xs text-muted-foreground">শেয়ার</p>
-            <Progress value={(totalSharesSold / TARGET_TOTAL) * 100} className="h-1.5 mt-2" />
+            <p className="text-xs text-muted-foreground">ডিরেক্টরদের মাধ্যমে বিক্রিত</p>
+            <p className="text-2xl font-bold text-primary">{totalAssigned} / {TARGET_TOTAL}</p>
+            <p className="text-xs text-muted-foreground">শেয়ার (লক্ষ্য: {TARGET_TOTAL})</p>
+            <Progress value={(totalAssigned / TARGET_TOTAL) * 100} className="h-1.5 mt-2" />
           </CardContent>
         </Card>
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">ডিরেক্টরদের মাধ্যমে</p>
-            <p className="text-2xl font-bold text-success">{totalAssigned}</p>
-            <p className="text-xs text-muted-foreground">শেয়ার assigned</p>
+            <p className="text-xs text-muted-foreground">এখনো বাকি</p>
+            <p className="text-2xl font-bold text-warning">{Math.max(0, TARGET_TOTAL - totalAssigned)}</p>
+            <p className="text-xs text-muted-foreground">শেয়ার বিক্রির বাকি</p>
           </CardContent>
         </Card>
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">মোট মূল্য</p>
-            <p className="text-2xl font-bold text-card-foreground">{formatBdtBangla(totalSharesSold * TOTAL_SHARE_AMOUNT)}</p>
+            <p className="text-xs text-muted-foreground">বিক্রিত মূল্য</p>
+            <p className="text-2xl font-bold text-success">{formatBdtBangla(totalAssigned * TOTAL_SHARE_AMOUNT)}</p>
           </CardContent>
         </Card>
       </div>
