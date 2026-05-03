@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Shareholder, Payment, Installment, formatBdtBangla, INSTALLMENT_AMOUNT, INSTALLMENT_MONTHS } from '@/types';
+import { PROJECT } from '@/config/project';
 
 const MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
 
@@ -106,8 +107,8 @@ export default function Portal() {
             <Building2 className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex-1">
-            <h1 className="text-base font-bold text-foreground">Uttara Vilas</h1>
-            <p className="text-xs text-muted-foreground">শেয়ারহোল্ডার পোর্টাল</p>
+            <h1 className="text-base font-bold text-foreground">{PROJECT.name}</h1>
+            <p className="text-xs text-muted-foreground">{PROJECT.nameBn} • শেয়ারহোল্ডার পোর্টাল</p>
           </div>
           <Badge variant="outline" className="text-xs">Read-only</Badge>
         </div>
