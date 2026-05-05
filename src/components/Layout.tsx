@@ -31,6 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { notifications } = useApp();
   const { isAdmin, signOut, user } = useAuth();
   const unreadCount = notifications.filter(n => !n.read).length;
+  const { theme, toggle } = useTheme();
 
   return (
     <div className="min-h-screen flex bg-background">
