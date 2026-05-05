@@ -44,18 +44,21 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="gradient-primary rounded-xl p-5 text-primary-foreground">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="relative overflow-hidden rounded-xl p-5 border border-primary/30 bg-gradient-to-br from-card via-card to-secondary shadow-premium">
+        <div className="absolute inset-0 gradient-glow pointer-events-none" />
+        <div className="relative flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-xl font-bold">🏗️ Uttara Vilas</h2>
-            <p className="text-primary-foreground/80 text-sm mt-1">{totalShares} of {target} shares sold • {formatBdtBangla(totalCollected)} collected</p>
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">🏗️ <span>Uttara Vilas</span></h2>
+            <p className="text-muted-foreground text-sm mt-1">{totalShares} of {target} shares sold • <span className="text-primary font-semibold">{formatBdtBangla(totalCollected)}</span> collected</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-primary-foreground/70">Overall Progress</p>
-            <p className="text-2xl font-bold">{Math.round((totalCollected / (totalExpected || 1)) * 100)}%</p>
+            <p className="text-sm text-muted-foreground">Overall Progress</p>
+            <p className="text-2xl font-bold text-primary">{Math.round((totalCollected / (totalExpected || 1)) * 100)}%</p>
           </div>
         </div>
-        <Progress value={(totalCollected / (totalExpected || 1)) * 100} className="mt-4 h-2 bg-primary-foreground/20" />
+        <div className="relative mt-4 h-2 w-full rounded-full bg-muted overflow-hidden">
+          <div className="h-full gradient-primary transition-all" style={{ width: `${Math.min(100, (totalCollected / (totalExpected || 1)) * 100)}%` }} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
