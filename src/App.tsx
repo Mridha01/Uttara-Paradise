@@ -37,6 +37,7 @@ const PageFallback = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
     <TooltipProvider>
       <Sonner />
       <BrowserRouter>
