@@ -147,6 +147,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {isAdmin && (
             <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">Admin</span>
           )}
+          <button
+            onClick={toggle}
+            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+            aria-label="Toggle theme"
+            title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
           <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
             <Bell className="w-5 h-5 text-muted-foreground" />
             {unreadCount > 0 && (
