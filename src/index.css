@@ -166,6 +166,9 @@
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
+  .shadow-hover {
+    box-shadow: var(--shadow-hover);
+  }
 }
 
 @keyframes fade-in {
