@@ -88,8 +88,17 @@
   .gradient-hero {
     background: var(--gradient-hero);
   }
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  .gradient-glow {
+    background: var(--gradient-glow);
+  }
   .shadow-card {
     box-shadow: var(--shadow-card);
+  }
+  .shadow-premium {
+    box-shadow: var(--shadow-premium);
   }
   .shadow-elevated {
     box-shadow: var(--shadow-elevated);
