@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck, LogIn, LogOut, Calendar, Home, TrendingUp, Lock } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck, LogIn, LogOut, Calendar, Home, TrendingUp, Lock, Sun, Moon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -30,6 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { notifications } = useApp();
   const { isAdmin, signOut, user } = useAuth();
   const unreadCount = notifications.filter(n => !n.read).length;
+  const { theme, toggle } = useTheme();
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -145,6 +147,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {isAdmin && (
             <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">Admin</span>
           )}
+          <button
+            onClick={toggle}
+            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+            aria-label="Toggle theme"
+            title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
           <Link to="/notifications" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
             <Bell className="w-5 h-5 text-muted-foreground" />
             {unreadCount > 0 && (
