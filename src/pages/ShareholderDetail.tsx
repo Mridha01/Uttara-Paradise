@@ -65,28 +65,37 @@ export default function ShareholderDetail() {
         )}
       </div>
 
-      <Card className="shadow-card">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-4">
-            {shareholder.profile_image_url ? (
-              <img src={shareholder.profile_image_url} alt={shareholder.name} className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
-            ) : (
-              <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-2xl flex-shrink-0">{shareholder.name.charAt(0)}</div>
-            )}
-            <div className="flex-1">
-              <h1 className="text-xl font-bold text-card-foreground">{shareholder.name}</h1>
-              <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" />{shareholder.phone}</span>
-                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{shareholder.address || 'N/A'}</span>
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md">
-                  <Calendar className="w-4 h-4" /> Joined: {new Date(shareholder.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
-                </span>
-                {shareholder.num_shares > 1 && <span className="text-sm font-medium text-primary">Shares: {shareholder.num_shares}</span>}
+      <Card className="shadow-card overflow-hidden">
+        <div className="h-1 gradient-primary" />
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-2 mb-3 sm:hidden">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Shareholder</span>
+            <Badge variant={shareholder.status === 'fully_paid' ? 'default' : 'secondary'} className={shareholder.status === 'fully_paid' ? 'bg-success text-success-foreground' : ''}>
+              {shareholder.status === 'fully_paid' ? 'Fully Paid' : shareholder.status === 'partial' ? 'Partial' : 'Booked'}
+            </Badge>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-start gap-3 sm:gap-4">
+              {shareholder.profile_image_url ? (
+                <img src={shareholder.profile_image_url} alt={shareholder.name} className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0 ring-2 ring-primary/30" />
+              ) : (
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-2xl flex-shrink-0">{shareholder.name.charAt(0)}</div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-card-foreground break-words">{shareholder.name}</h1>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 flex-shrink-0" /><span className="break-all">{shareholder.phone}</span></span>
+                  <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 flex-shrink-0" /><span className="break-words">{shareholder.address || 'N/A'}</span></span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
+                    <Calendar className="w-3.5 h-3.5" /> {new Date(shareholder.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
+                  {shareholder.num_shares > 1 && <span className="text-xs sm:text-sm font-medium text-primary bg-primary/10 px-2 py-1 rounded-md">Shares: {shareholder.num_shares}</span>}
+                </div>
               </div>
             </div>
-            <Badge variant={shareholder.status === 'fully_paid' ? 'default' : 'secondary'} className={shareholder.status === 'fully_paid' ? 'bg-success' : ''}>
+            <Badge variant={shareholder.status === 'fully_paid' ? 'default' : 'secondary'} className={cn("hidden sm:inline-flex sm:ml-auto self-start", shareholder.status === 'fully_paid' ? 'bg-success text-success-foreground' : '')}>
               {shareholder.status === 'fully_paid' ? 'Fully Paid' : shareholder.status === 'partial' ? 'Partial' : 'Booked'}
             </Badge>
           </div>
