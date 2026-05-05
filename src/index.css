@@ -6,35 +6,35 @@
 
 @layer base {
   :root {
-    /* Light surfaces with lime accent (Breeze-inspired) */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 8%;
+    /* Premium dark surfaces — ClientFlow-inspired */
+    --background: 0 0% 5%;
+    --foreground: 0 0% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 84 81% 44%;
-    --primary-foreground: 0 0% 8%;
-    --primary-glow: 84 100% 60%;
+    --primary: 84 100% 60%;
+    --primary-foreground: 0 0% 6%;
+    --primary-glow: 84 100% 70%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 12%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 92%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 84 100% 50%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 84 100% 60%;
+    --accent-foreground: 0 0% 6%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 84 81% 44%;
+    --border: 0 0% 16%;
+    --input: 0 0% 14%;
+    --ring: 84 100% 60%;
 
     --radius: 0.85rem;
 
