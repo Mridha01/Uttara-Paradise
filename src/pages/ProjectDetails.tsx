@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Building2, Home, Layers, DollarSign, Users, Calendar, Phone, Edit, Save, X, Plus, Trash2 } from 'lucide-react';
+import { MapPin, Building2, Home, Layers, DollarSign, Users, Calendar, Phone, Edit, Save, X, Plus, Trash2, CheckCircle2, TrendingUp, Rocket, Star, Sparkles, Map } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { TOTAL_LAND_COST, TARGET_SHAREHOLDERS, TOTAL_SHARE_AMOUNT, MAX_BOOKING_A
 import { toast } from 'sonner';
 
 const DEFAULTS: Record<string, any> = {
-  hero: { title: '🏗️ Uttara Vilas', tagline: 'Your Future, Your Address', description: '' },
+  hero: { title: '🏗️ Uttara Paradise', tagline: 'Your Future, Your Address', description: '' },
   location: { items: [] as string[] },
   overview: { items: [] as { label: string; value: string }[] },
   features: { items: [] as string[] },
@@ -100,243 +100,378 @@ export default function ProjectDetails() {
 
   const EditBtn = ({ section }: { section: string }) =>
     isAdmin ? (
-      <Button onClick={() => setEditingSection(section)} variant="ghost" size="sm" className="h-7 px-2 gap-1">
-        <Edit className="w-3 h-3" /> Edit
+      <Button
+        onClick={() => setEditingSection(section)}
+        variant="outline"
+        size="sm"
+        className="h-8 px-3 gap-1.5 border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors text-xs font-semibold rounded-full"
+      >
+        <Edit className="w-3.5 h-3.5" /> Edit
       </Button>
     ) : null;
 
   return (
-    <div className="space-y-6">
-      {/* Hero */}
-      <div className="gradient-primary rounded-xl p-6 text-primary-foreground relative">
-        <h1 className="text-2xl lg:text-3xl font-bold">{hero.title}</h1>
-        <p className="text-primary-foreground/80 text-lg mt-1">{hero.tagline}</p>
-        <p className="text-primary-foreground/70 text-sm mt-2 whitespace-pre-line">{hero.description}</p>
-        {isAdmin && (
-          <div className="absolute top-4 right-4 flex gap-2">
-            <Button onClick={() => setEditingSection('hero')} variant="secondary" size="sm" className="gap-2"><Edit className="w-3.5 h-3.5" /> Hero</Button>
-            {!editOpen && <Button onClick={openEdit} variant="secondary" size="sm" className="gap-2"><Edit className="w-3.5 h-3.5" /> Numbers</Button>}
+    <div className="space-y-8 pb-10">
+      {/* Premium Hero */}
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 shadow-2xl p-6 lg:p-8 group">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] bg-blue-500/20 rounded-full blur-[100px] opacity-60 group-hover:opacity-80 transition-opacity duration-1000"></div>
+        <div className="absolute -bottom-32 -left-32 w-[20rem] h-[20rem] bg-indigo-500/20 rounded-full blur-[80px] opacity-50"></div>
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-blue-300 text-[10px] font-bold uppercase tracking-widest mb-4 backdrop-blur-md">
+              <Star className="w-3 h-3" /> Exclusive Real Estate
+            </div>
+            <h1 className="text-3xl lg:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-2">
+              {hero.title.replace('Uttara Vilas', 'Uttara Paradise')}
+            </h1>
+            <p className="text-blue-200 text-lg lg:text-xl font-light tracking-wide mb-4">{hero.tagline}</p>
+            {hero.description && (
+              <p className="text-blue-100/70 text-sm leading-relaxed max-w-2xl whitespace-pre-line bg-black/20 p-4 rounded-xl backdrop-blur-sm border border-white/5">
+                {hero.description}
+              </p>
+            )}
           </div>
-        )}
+
+          {isAdmin && (
+            <div className="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
+              <Button onClick={() => setEditingSection('hero')} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md rounded-xl h-10 px-4 shadow-lg transition-all text-sm">
+                <Edit className="w-4 h-4 mr-1.5" /> Edit Hero
+              </Button>
+              {!editOpen && (
+                <Button onClick={openEdit} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white border-0 shadow-lg shadow-blue-500/25 rounded-xl h-10 px-4 transition-all hover:scale-105 text-sm">
+                  <Edit className="w-4 h-4 mr-1.5" /> Edit Numbers
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Numbers edit */}
+      {/* Numbers config edit panel */}
       {isAdmin && editOpen && (
-        <Card className="shadow-card border-primary">
-          <CardHeader className="pb-2 flex-row items-center justify-between">
-            <CardTitle className="text-base">⚙️ Project Numbers</CardTitle>
-            <button onClick={() => setEditOpen(false)} className="p-1 rounded hover:bg-muted"><X className="w-4 h-4" /></button>
+        <Card className="shadow-2xl border-blue-500/30 bg-card/80 backdrop-blur-xl rounded-3xl animate-in fade-in slide-in-from-top-4 overflow-hidden">
+          <div className="h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 w-full"></div>
+          <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2 text-blue-500"><Building2 className="w-5 h-5" /> Project Financial Configuration</CardTitle>
+            <button onClick={() => setEditOpen(false)} className="p-1.5 rounded-lg hover:bg-muted/80 transition-colors"><X className="w-5 h-5" /></button>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div><Label>জমির মোট মূল্য (৳)</Label><Input type="number" value={form.land_price_total} onChange={e => setForm(p => ({ ...p, land_price_total: e.target.value }))} /><p className="text-xs text-muted-foreground mt-1">{formatBdtBangla(Number(form.land_price_total) || 0)}</p></div>
-              <div><Label>মোট শেয়ার সংখ্যা</Label><Input type="number" value={form.target_shareholders} onChange={e => setForm(p => ({ ...p, target_shareholders: e.target.value }))} /></div>
-              <div><Label>প্রতি শেয়ারের মূল্য (৳)</Label><Input type="number" value={form.share_price} onChange={e => setForm(p => ({ ...p, share_price: e.target.value }))} /></div>
-              <div><Label>বুকিং মানি (৳)</Label><Input type="number" value={form.booking_max} onChange={e => setForm(p => ({ ...p, booking_max: e.target.value }))} /></div>
-              <div><Label>মাসিক ইনস্টলমেন্ট (৳)</Label><Input type="number" value={form.installment_amount} onChange={e => setForm(p => ({ ...p, installment_amount: e.target.value }))} /></div>
-              <div><Label>মোট মাস</Label><Input type="number" value={form.installment_months} onChange={e => setForm(p => ({ ...p, installment_months: e.target.value }))} /></div>
+          <CardContent className="space-y-4 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2"><Label className="text-foreground/80">জমির মোট মূল্য (৳)</Label><Input type="number" className="bg-background/50 h-11 text-lg font-bold" value={form.land_price_total} onChange={e => setForm(p => ({ ...p, land_price_total: e.target.value }))} /><p className="text-xs text-muted-foreground font-medium bg-muted/50 inline-block px-2 py-1 rounded">{formatBdtBangla(Number(form.land_price_total) || 0)}</p></div>
+              <div className="space-y-2"><Label className="text-foreground/80">মোট শেয়ার সংখ্যা</Label><Input type="number" className="bg-background/50 h-11" value={form.target_shareholders} onChange={e => setForm(p => ({ ...p, target_shareholders: e.target.value }))} /></div>
+              <div className="space-y-2"><Label className="text-foreground/80">প্রতি শেয়ারের মূল্য (৳)</Label><Input type="number" className="bg-background/50 h-11" value={form.share_price} onChange={e => setForm(p => ({ ...p, share_price: e.target.value }))} /></div>
+              <div className="space-y-2"><Label className="text-foreground/80">বুকিং মানি (৳)</Label><Input type="number" className="bg-background/50 h-11 text-indigo-500 font-bold" value={form.booking_max} onChange={e => setForm(p => ({ ...p, booking_max: e.target.value }))} /></div>
+              <div className="space-y-2"><Label className="text-foreground/80">মাসিক ইনস্টলমেন্ট (৳)</Label><Input type="number" className="bg-background/50 h-11 text-blue-500 font-bold" value={form.installment_amount} onChange={e => setForm(p => ({ ...p, installment_amount: e.target.value }))} /></div>
+              <div className="space-y-2"><Label className="text-foreground/80">মোট মাস</Label><Input type="number" className="bg-background/50 h-11" value={form.installment_months} onChange={e => setForm(p => ({ ...p, installment_months: e.target.value }))} /></div>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} className="gradient-primary text-primary-foreground gap-2"><Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save'}</Button>
-              <Button onClick={() => setEditOpen(false)} variant="outline">Cancel</Button>
+            <div className="flex gap-3 pt-4">
+              <Button onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white h-11 px-8 rounded-xl shadow-lg shadow-blue-500/25">
+                <Save className="w-4 h-4 mr-2" /> {saving ? 'Saving...' : 'Save Configuration'}
+              </Button>
+              <Button onClick={() => setEditOpen(false)} variant="outline" className="h-11 px-8 rounded-xl bg-background/50">Cancel</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Section editor (inline below the section being edited) */}
+      {/* Inline Section Editor */}
       {editingSection && draft && (
-        <Card className="shadow-card border-primary">
-          <CardHeader className="pb-2 flex-row items-center justify-between">
-            <CardTitle className="text-base">✏️ Editing: {editingSection}</CardTitle>
-            <button onClick={() => setEditingSection(null)} className="p-1 rounded hover:bg-muted"><X className="w-4 h-4" /></button>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <Card className="shadow-2xl border-primary/30 bg-card/80 backdrop-blur-xl rounded-3xl animate-in fade-in slide-in-from-top-4 overflow-hidden border-2 border-dashed">
+          <div className="bg-primary/10 p-3 border-b border-primary/20 flex items-center justify-between">
+            <p className="text-sm font-bold text-primary flex items-center gap-2"><Edit className="w-4 h-4" /> Live Editing: {editingSection.toUpperCase()}</p>
+            <button onClick={() => setEditingSection(null)} className="p-1 rounded-md hover:bg-primary/20 text-primary transition-colors"><X className="w-4 h-4" /></button>
+          </div>
+          <CardContent className="space-y-4 pt-6">
             {editingSection === 'hero' && (
-              <>
-                <div><Label>Title</Label><Input value={draft.title || ''} onChange={e => setDraft({ ...draft, title: e.target.value })} /></div>
-                <div><Label>Tagline</Label><Input value={draft.tagline || ''} onChange={e => setDraft({ ...draft, tagline: e.target.value })} /></div>
-                <div><Label>Description</Label><Textarea rows={3} value={draft.description || ''} onChange={e => setDraft({ ...draft, description: e.target.value })} /></div>
-              </>
+              <div className="space-y-4">
+                <div><Label>Title</Label><Input className="bg-background/50 mt-1" value={draft.title || ''} onChange={e => setDraft({ ...draft, title: e.target.value })} /></div>
+                <div><Label>Tagline</Label><Input className="bg-background/50 mt-1" value={draft.tagline || ''} onChange={e => setDraft({ ...draft, tagline: e.target.value })} /></div>
+                <div><Label>Description</Label><Textarea className="bg-background/50 mt-1" rows={4} value={draft.description || ''} onChange={e => setDraft({ ...draft, description: e.target.value })} /></div>
+              </div>
             )}
             {(editingSection === 'location' || editingSection === 'features' || editingSection === 'why') && (
-              <div className="space-y-2">
-                <Label>Items</Label>
-                {(draft.items || []).map((item: string, i: number) => (
-                  <div key={i} className="flex gap-2">
-                    <Input value={item} onChange={e => { const items = [...draft.items]; items[i] = e.target.value; setDraft({ ...draft, items }); }} />
-                    <Button type="button" variant="outline" size="icon" onClick={() => { const items = draft.items.filter((_: any, x: number) => x !== i); setDraft({ ...draft, items }); }}><Trash2 className="w-4 h-4" /></Button>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => setDraft({ ...draft, items: [...(draft.items || []), ''] })} className="gap-1"><Plus className="w-3 h-3" /> Add item</Button>
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">List Items</Label>
+                <div className="space-y-2">
+                  {(draft.items || []).map((item: string, i: number) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">{i + 1}</div>
+                      <Input className="bg-background/50" value={item} onChange={e => { const items = [...draft.items]; items[i] = e.target.value; setDraft({ ...draft, items }); }} />
+                      <Button type="button" variant="destructive" size="icon" className="h-10 w-10 shrink-0 rounded-xl" onClick={() => { const items = draft.items.filter((_: any, x: number) => x !== i); setDraft({ ...draft, items }); }}><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" className="w-full border-dashed mt-2" onClick={() => setDraft({ ...draft, items: [...(draft.items || []), ''] })}><Plus className="w-4 h-4 mr-2" /> Add New Item</Button>
               </div>
             )}
             {editingSection === 'overview' && (
-              <div className="space-y-2">
-                <Label>Specs (label / value)</Label>
-                {(draft.items || []).map((item: any, i: number) => (
-                  <div key={i} className="flex gap-2">
-                    <Input placeholder="Label" value={item.label} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], label: e.target.value }; setDraft({ ...draft, items }); }} />
-                    <Input placeholder="Value" value={item.value} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], value: e.target.value }; setDraft({ ...draft, items }); }} />
-                    <Button type="button" variant="outline" size="icon" onClick={() => { const items = draft.items.filter((_: any, x: number) => x !== i); setDraft({ ...draft, items }); }}><Trash2 className="w-4 h-4" /></Button>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => setDraft({ ...draft, items: [...(draft.items || []), { label: '', value: '' }] })} className="gap-1"><Plus className="w-3 h-3" /> Add spec</Button>
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">Specifications</Label>
+                <div className="space-y-2">
+                  {(draft.items || []).map((item: any, i: number) => (
+                    <div key={i} className="flex gap-2">
+                      <Input placeholder="Label (e.g. Building Size)" className="bg-background/50" value={item.label} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], label: e.target.value }; setDraft({ ...draft, items }); }} />
+                      <Input placeholder="Value (e.g. 5000 sqft)" className="bg-background/50" value={item.value} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], value: e.target.value }; setDraft({ ...draft, items }); }} />
+                      <Button type="button" variant="destructive" size="icon" className="shrink-0" onClick={() => { const items = draft.items.filter((_: any, x: number) => x !== i); setDraft({ ...draft, items }); }}><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" className="w-full border-dashed mt-2" onClick={() => setDraft({ ...draft, items: [...(draft.items || []), { label: '', value: '' }] })}><Plus className="w-4 h-4 mr-2" /> Add Specification</Button>
               </div>
             )}
             {editingSection === 'income' && (
-              <>
-                <div><Label>Current Title</Label><Input value={draft.current_title || ''} onChange={e => setDraft({ ...draft, current_title: e.target.value })} /></div>
-                <div><Label>Current Text</Label><Textarea rows={3} value={draft.current_text || ''} onChange={e => setDraft({ ...draft, current_text: e.target.value })} /></div>
-                <div><Label>Future Title</Label><Input value={draft.future_title || ''} onChange={e => setDraft({ ...draft, future_title: e.target.value })} /></div>
-                <div><Label>Future Text</Label><Textarea rows={3} value={draft.future_text || ''} onChange={e => setDraft({ ...draft, future_text: e.target.value })} /></div>
-              </>
-            )}
-            {editingSection === 'timeline' && (
-              <div className="space-y-2">
-                <Label>Timeline events</Label>
-                {(draft.items || []).map((item: any, i: number) => (
-                  <div key={i} className="grid grid-cols-[60px_1fr_100px_44px] gap-2">
-                    <Input placeholder="emoji" value={item.emoji} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], emoji: e.target.value }; setDraft({ ...draft, items }); }} />
-                    <Input placeholder="Text" value={item.text} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], text: e.target.value }; setDraft({ ...draft, items }); }} />
-                    <Input placeholder="primary/warning/success" value={item.color} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], color: e.target.value }; setDraft({ ...draft, items }); }} />
-                    <Button type="button" variant="outline" size="icon" onClick={() => { const items = draft.items.filter((_: any, x: number) => x !== i); setDraft({ ...draft, items }); }}><Trash2 className="w-4 h-4" /></Button>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => setDraft({ ...draft, items: [...(draft.items || []), { emoji: '📌', text: '', color: 'primary' }] })} className="gap-1"><Plus className="w-3 h-3" /> Add event</Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+                  <p className="font-bold text-sm text-primary">Current Income Strategy</p>
+                  <div><Label>Title</Label><Input className="bg-background/50 mt-1" value={draft.current_title || ''} onChange={e => setDraft({ ...draft, current_title: e.target.value })} /></div>
+                  <div><Label>Description</Label><Textarea className="bg-background/50 mt-1" rows={4} value={draft.current_text || ''} onChange={e => setDraft({ ...draft, current_text: e.target.value })} /></div>
+                </div>
+                <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+                  <p className="font-bold text-sm text-primary">Future Income Strategy</p>
+                  <div><Label>Title</Label><Input className="bg-background/50 mt-1" value={draft.future_title || ''} onChange={e => setDraft({ ...draft, future_title: e.target.value })} /></div>
+                  <div><Label>Description</Label><Textarea className="bg-background/50 mt-1" rows={4} value={draft.future_text || ''} onChange={e => setDraft({ ...draft, future_text: e.target.value })} /></div>
+                </div>
               </div>
             )}
-            <div className="flex gap-2">
-              <Button onClick={saveSection} disabled={saving} className="gradient-primary text-primary-foreground gap-2"><Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save'}</Button>
-              <Button onClick={() => setEditingSection(null)} variant="outline">Cancel</Button>
+            {editingSection === 'timeline' && (
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">Timeline Milestones</Label>
+                <div className="space-y-2">
+                  {(draft.items || []).map((item: any, i: number) => (
+                    <div key={i} className="flex flex-wrap sm:flex-nowrap gap-2">
+                      <Input placeholder="Emoji" className="bg-background/50 w-full sm:w-20 text-center" value={item.emoji} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], emoji: e.target.value }; setDraft({ ...draft, items }); }} />
+                      <Input placeholder="Milestone description" className="bg-background/50 flex-1" value={item.text} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], text: e.target.value }; setDraft({ ...draft, items }); }} />
+                      <Input placeholder="Color (e.g. primary)" className="bg-background/50 w-full sm:w-32" value={item.color} onChange={e => { const items = [...draft.items]; items[i] = { ...items[i], color: e.target.value }; setDraft({ ...draft, items }); }} />
+                      <Button type="button" variant="destructive" size="icon" className="shrink-0" onClick={() => { const items = draft.items.filter((_: any, x: number) => x !== i); setDraft({ ...draft, items }); }}><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" className="w-full border-dashed mt-2" onClick={() => setDraft({ ...draft, items: [...(draft.items || []), { emoji: '📌', text: '', color: 'primary' }] })}><Plus className="w-4 h-4 mr-2" /> Add Milestone</Button>
+              </div>
+            )}
+            <div className="flex gap-3 pt-4 border-t border-border/50">
+              <Button onClick={saveSection} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground h-11 px-8 rounded-xl shadow-lg">
+                <Save className="w-4 h-4 mr-2" /> {saving ? 'Saving...' : 'Publish Changes'}
+              </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Location */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2 flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> লোকেশন হাইলাইটস</CardTitle>
-          <EditBtn section="location" />
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {(location.items || []).map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-card-foreground"><span className="text-primary mt-0.5">📍</span> {item}</li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Location */}
+        <Card className="shadow-lg border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden group hover:bg-card/60 hover:border-white/10 transition-all duration-300">
+          <div className="h-1.5 w-full bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500"><Map className="w-6 h-6" /></div>
+                <span>Location Highlights</span>
+              </div>
+              <EditBtn section="location" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {(location.items || []).map((item, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <div className="mt-1 p-1 rounded-full bg-emerald-500/10 text-emerald-500 shrink-0"><MapPin className="w-4 h-4" /></div>
+                  <span className="text-sm font-medium text-foreground leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
 
-      {/* Overview */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2 flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><Layers className="w-5 h-5 text-primary" /> প্রকল্প ওভারভিউ</CardTitle>
-          <EditBtn section="overview" />
+        {/* Why Uttara Paradise? */}
+        <Card className="shadow-lg border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden group hover:bg-card/60 hover:border-white/10 transition-all duration-300">
+          <div className="h-1.5 w-full bg-gradient-to-r from-violet-400 to-purple-500"></div>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-violet-500/10 text-violet-500"><Rocket className="w-6 h-6" /></div>
+                <span>Why Uttara Paradise?</span>
+              </div>
+              <EditBtn section="why" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {(why.items || []).map((w, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <div className="mt-1 p-1 rounded-full bg-violet-500/10 text-violet-500 shrink-0"><Sparkles className="w-4 h-4" /></div>
+                  <span className="text-sm font-medium text-foreground leading-relaxed">{w}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Overview & Specs */}
+      <Card className="shadow-xl border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden">
+        <div className="h-1.5 w-full bg-gradient-to-r from-blue-400 to-cyan-500"></div>
+        <CardHeader className="pb-6">
+          <CardTitle className="text-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500"><Layers className="w-6 h-6" /></div>
+              <span>Project Specifications</span>
+            </div>
+            <EditBtn section="overview" />
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {(overview.items || []).map((item, i) => (
-              <div key={i} className="p-3 rounded-lg bg-muted text-center">
-                <Building2 className="w-5 h-5 text-primary mx-auto mb-1.5" />
-                <p className="text-base font-bold text-card-foreground">{item.value}</p>
-                <p className="text-xs text-muted-foreground">{item.label}</p>
+              <div key={i} className="p-4 rounded-2xl bg-background/50 border border-border/50 text-center hover:bg-muted/50 transition-colors">
+                <Building2 className="w-6 h-6 text-blue-500 mx-auto mb-2 opacity-80" />
+                <p className="text-lg font-bold text-foreground">{item.value}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">{item.label}</p>
               </div>
             ))}
-            <div className="p-3 rounded-lg bg-muted text-center">
-              <Home className="w-5 h-5 text-primary mx-auto mb-1.5" />
-              <p className="text-base font-bold text-card-foreground">{target}টি</p>
-              <p className="text-xs text-muted-foreground">মোট ইউনিট</p>
+            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 text-center shadow-inner">
+              <Home className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+              <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">{target} Units</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-blue-600/70 dark:text-blue-400/70 mt-1">Total Availability</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Features */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2 flex-row items-center justify-between">
-          <CardTitle className="text-base">🌟 স্পেশাল ফিচারস</CardTitle>
-          <EditBtn section="features" />
+      {/* Special Features */}
+      <Card className="shadow-lg border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden">
+        <div className="h-1.5 w-full bg-gradient-to-r from-fuchsia-400 to-pink-500"></div>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-fuchsia-500/10 text-fuchsia-500"><Star className="w-6 h-6" /></div>
+              <span>Premium Features</span>
+            </div>
+            <EditBtn section="features" />
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             {(features.items || []).map((f, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-card-foreground"><span className="text-primary">✔️</span> {f}</div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Investment Highlights — driven by settings */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><DollarSign className="w-5 h-5 text-primary" /> ইনভেস্টমেন্ট হাইলাইটস</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <div className="p-3 rounded-lg bg-muted"><p className="text-muted-foreground">জমির মোট মূল্য</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(landPrice)}</p></div>
-            <div className="p-3 rounded-lg bg-muted"><p className="text-muted-foreground">মোট শেয়ার</p><p className="text-lg font-bold text-card-foreground">{target} জন</p></div>
-            <div className="p-3 rounded-lg bg-muted"><p className="text-muted-foreground">প্রতি শেয়ারের মূল্য</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(sharePrice)}</p></div>
-            <div className="p-3 rounded-lg bg-muted"><p className="text-muted-foreground">বুকিং মানি</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(bookingMax)}</p></div>
-            <div className="p-3 rounded-lg bg-muted"><p className="text-muted-foreground">মাসিক ইনস্টলমেন্ট</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(instAmount)} × {instMonths} মাস</p></div>
-            <div className="p-3 rounded-lg bg-muted"><p className="text-muted-foreground">মোট ইনস্টলমেন্ট সম্ভাবনা</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(instAmount * instMonths * target)}</p></div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Income */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2 flex-row items-center justify-between">
-          <CardTitle className="text-base">📈 আয়ের সুযোগ</CardTitle>
-          <EditBtn section="income" />
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-card-foreground">
-          <div className="p-3 rounded-lg bg-muted">
-            <p className="font-semibold">{income.current_title}</p>
-            <p className="whitespace-pre-line">{income.current_text}</p>
-          </div>
-          <div className="p-3 rounded-lg bg-muted">
-            <p className="font-semibold">{income.future_title}</p>
-            <p className="whitespace-pre-line">{income.future_text}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Why */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2 flex-row items-center justify-between">
-          <CardTitle className="text-base">🚀 কেন Uttara Vilas?</CardTitle>
-          <EditBtn section="why" />
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-card-foreground">
-            {(why.items || []).map((w, i) => (<li key={i}>{w}</li>))}
-          </ul>
-        </CardContent>
-      </Card>
-
-      {/* Timeline */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2 flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><Calendar className="w-5 h-5 text-primary" /> টাইমলাইন</CardTitle>
-          <EditBtn section="timeline" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 text-sm text-card-foreground">
-            {(timeline.items || []).map((t, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full flex-shrink-0 bg-${t.color || 'primary'}`} />
-                <p>{t.emoji} {t.text}</p>
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/30 transition-colors">
+                <CheckCircle2 className="w-5 h-5 text-fuchsia-500 shrink-0" />
+                <span className="text-sm font-medium text-foreground">{f}</span>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Phone className="w-5 h-5 text-primary" /> যোগাযোগ</CardTitle></CardHeader>
+      {/* Investment Highlights */}
+      <Card className="shadow-xl border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden border-2 border-primary/20">
+        <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500"></div>
+        <CardHeader className="pb-6 bg-gradient-to-b from-primary/5 to-transparent">
+          <CardTitle className="text-xl flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary"><DollarSign className="w-6 h-6" /></div>
+            <span>Investment Highlights</span>
+          </CardTitle>
+        </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">বিস্তারিত জানতে বা বুকিং করতে Directors-দের সাথে যোগাযোগ করুন:</p>
-          <Link to="/directors"><Button className="gradient-primary text-primary-foreground gap-2"><Users className="w-4 h-4" /> View Directors</Button></Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-5 rounded-2xl bg-background/60 border border-border/50 flex flex-col justify-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Total Land Value</p>
+              <p className="text-2xl font-extrabold text-foreground">{formatBdtBangla(landPrice)}</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-background/60 border border-border/50 flex flex-col justify-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Total Shareholders</p>
+              <p className="text-2xl font-extrabold text-foreground">{target} Members</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-background/60 border border-border/50 flex flex-col justify-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Price Per Share</p>
+              <p className="text-2xl font-extrabold text-foreground">{formatBdtBangla(sharePrice)}</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-primary/5 border border-primary/20 flex flex-col justify-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">Initial Booking Money</p>
+              <p className="text-2xl font-extrabold text-primary">{formatBdtBangla(bookingMax)}</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-background/60 border border-border/50 flex flex-col justify-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Monthly Installment</p>
+              <p className="text-2xl font-extrabold text-foreground">{formatBdtBangla(instAmount)} <span className="text-sm text-muted-foreground font-medium">× {instMonths} Months</span></p>
+            </div>
+            <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 flex flex-col justify-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">Total Installment Potential</p>
+              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{formatBdtBangla(instAmount * instMonths * target)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Income Opportunities */}
+        <Card className="shadow-lg border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden">
+          <div className="h-1.5 w-full bg-gradient-to-r from-rose-400 to-orange-500"></div>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-rose-500/10 text-rose-500"><TrendingUp className="w-6 h-6" /></div>
+                <span>Income Potential</span>
+              </div>
+              <EditBtn section="income" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-5 rounded-2xl bg-background/50 border border-border/50 hover:bg-muted/30 transition-colors">
+              <p className="font-bold text-base text-foreground mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-rose-500"></span>{income.current_title}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line pl-4">{income.current_text}</p>
+            </div>
+            <div className="p-5 rounded-2xl bg-background/50 border border-border/50 hover:bg-muted/30 transition-colors">
+              <p className="font-bold text-base text-foreground mb-2 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-orange-500"></span>{income.future_title}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line pl-4">{income.future_text}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Timeline */}
+        <Card className="shadow-lg border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden">
+          <div className="h-1.5 w-full bg-gradient-to-r from-sky-400 to-blue-500"></div>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500"><Calendar className="w-6 h-6" /></div>
+                <span>Project Timeline</span>
+              </div>
+              <EditBtn section="timeline" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-5 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-muted before:to-transparent">
+              {(timeline.items || []).map((t, i) => (
+                <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full border border-background bg-muted text-xl shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 relative">
+                    {t.emoji}
+                  </div>
+                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-border/50 bg-background/50 shadow-sm group-hover:shadow-md transition-shadow">
+                    <p className="text-sm font-semibold text-foreground leading-snug">{t.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Contact CTA */}
+      <Card className="shadow-2xl border-primary/20 bg-gradient-to-br from-primary/5 to-transparent backdrop-blur-md rounded-3xl overflow-hidden text-center mt-8">
+        <CardContent className="p-10 lg:p-14">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center mb-6">
+            <Phone className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-3">Ready to Join Us?</h2>
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            Contact our board of directors to learn more about availability, booking details, and securing your share.
+          </p>
+          <Link to="/directors">
+            <Button className="h-12 px-8 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg shadow-primary/25 text-base font-semibold gap-2 transition-all hover:scale-105">
+              <Users className="w-5 h-5" /> View Directors & Contact Info
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Phone, MapPin, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Phone, MapPin, Edit, Trash2, Users, Activity, CheckCircle2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { TOTAL_SHARE_AMOUNT } from '@/types';
@@ -61,8 +61,8 @@ export default function Shareholders() {
       setForm({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1', referred_by_director_id: '' });
       setImageFile(null);
       setDialogOpen(false);
-      toast.success('Shareholder added!');
-    } catch { toast.error('Failed to add'); }
+      toast.success('Shareholder added successfully!');
+    } catch { toast.error('Failed to add shareholder'); }
     setSubmitting(false);
   };
 
@@ -92,8 +92,8 @@ export default function Shareholders() {
         referred_by_director_id: editForm.referred_by_director_id || null,
       });
       setEditDialogOpen(false);
-      toast.success('Updated!');
-    } catch { toast.error('Failed to update'); }
+      toast.success('Shareholder updated successfully!');
+    } catch { toast.error('Failed to update shareholder'); }
     setSubmitting(false);
   };
 
@@ -106,157 +106,253 @@ export default function Shareholders() {
     if (!selectedId) return;
     await deleteShareholder(selectedId);
     setDeleteDialogOpen(false);
-    toast.success('Deleted!');
+    toast.success('Shareholder deleted successfully!');
   };
 
-  if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
+  if (loading) return (
+    <div className="flex h-[60vh] items-center justify-center">
+      <div className="relative w-16 h-16">
+        <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
+        <div className="absolute inset-2 rounded-full border-r-2 border-cyan-500 animate-spin-reverse"></div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-bold text-foreground">Shareholders ({filtered.length})</h1>
-        {isAdmin && (
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary text-primary-foreground gap-2"><Plus className="w-4 h-4" /> Add Shareholder</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Add New Shareholder</DialogTitle></DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div><Label>Name *</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required /></div>
-                <div><Label>Phone *</Label><Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} required /></div>
-                <div><Label>Address</Label><Input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} /></div>
-                <div><Label>Booking Date</Label><Input type="date" value={form.booking_date} onChange={e => setForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
-                <div><Label>Number of Shares</Label><Input type="number" min={1} max={10} value={form.num_shares} onChange={e => setForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
-                {isAdmin && (
-                  <div>
-                    <Label>Referred By Director</Label>
-                    <Select value={form.referred_by_director_id || 'none'} onValueChange={v => setForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
-                      <SelectTrigger><SelectValue placeholder="Select director" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">— None —</SelectItem>
-                        {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div>
-                  <Label>Profile Image</Label>
-                  <Input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
-                </div>
-                <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>
-                  {submitting ? 'Adding...' : 'Add Shareholder'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+    <div className="space-y-6 pb-10">
+      {/* Premium Hero Header */}
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-2xl p-6 lg:p-8 group">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-700"></div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input className="pl-9" placeholder="Search by name or phone..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
-      </div>
+        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="w-full lg:w-auto text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-4 backdrop-blur-md">
+              <Users className="w-3 h-3" /> Member Directory
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">
+              Shareholders <span className="text-cyan-400">({filtered.length})</span>
+            </h1>
+          </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paginated.map((s, i) => (
-          <Link key={s.id} to={`/shareholders/${s.id}`}>
-            <Card className="shadow-card hover:shadow-elevated transition-shadow cursor-pointer animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  {s.profile_image_url ? (
-                    <img src={s.profile_image_url} alt={s.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-lg flex-shrink-0">
-                      {s.name.charAt(0)}
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative w-full sm:w-72">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-slate-400" />
+              </div>
+              <Input
+                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:bg-white/20 transition-colors backdrop-blur-md rounded-xl h-11"
+                placeholder="Search by name or phone..."
+                value={search}
+                onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+              />
+            </div>
+
+            {isAdmin && (
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto h-11 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white border-0 shadow-lg shadow-cyan-500/25 gap-2 transition-all hover:scale-105">
+                    <Plus className="w-4 h-4" /> Add Shareholder
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px] border-border/50 bg-background/95 backdrop-blur-xl">
+                  <DialogHeader><DialogTitle className="text-xl">Add New Shareholder</DialogTitle></DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5"><Label className="text-foreground/80">Name *</Label><Input className="bg-muted/50" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required /></div>
+                      <div className="space-y-1.5"><Label className="text-foreground/80">Phone *</Label><Input className="bg-muted/50" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} required /></div>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-card-foreground truncate">{s.name}</h3>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="w-3 h-3" />{s.phone}</div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5"><MapPin className="w-3 h-3" />{s.address || 'N/A'}</div>
-                    {s.num_shares > 1 && <span className="text-xs font-medium text-primary">Shares: {s.num_shares}</span>}
-                  </div>
-                  {isAdmin && (
-                    <div className="flex flex-col gap-1">
-                      <button onClick={(e) => openEdit(e, s.id)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Edit className="w-3.5 h-3.5" /></button>
-                      <button onClick={(e) => openDelete(e, s.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <div className="space-y-1.5"><Label className="text-foreground/80">Address</Label><Input className="bg-muted/50" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} /></div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5"><Label className="text-foreground/80">Booking Date</Label><Input className="bg-muted/50" type="date" value={form.booking_date} onChange={e => setForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
+                      <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} max={10} value={form.num_shares} onChange={e => setForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
                     </div>
-                  )}
-                </div>
-                <div className="mt-3">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Paid: ৳{s.total_paid.toLocaleString()}</span>
-                    <span className={s.status === 'fully_paid' ? 'text-success font-medium' : 'text-warning font-medium'}>
-                      {s.status === 'fully_paid' ? '✓ Paid' : `Due: ৳${(s.total_share - s.total_paid).toLocaleString()}`}
-                    </span>
-                  </div>
-                  <Progress value={(s.total_paid / s.total_share) * 100} className="h-1.5" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                    {/* Admin Only Field */}
+                    <div className="space-y-1.5 bg-primary/5 p-3 rounded-lg border border-primary/10">
+                      <div className="flex items-center gap-2 mb-2"><Activity className="w-4 h-4 text-primary" /><Label className="text-primary font-medium m-0">Admin: Referred By Director</Label></div>
+                      <Select value={form.referred_by_director_id || 'none'} onValueChange={v => setForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
+                        <SelectTrigger className="bg-background"><SelectValue placeholder="Select director" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">— None —</SelectItem>
+                          {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-foreground/80">Profile Image</Label>
+                      <Input className="bg-muted/50 cursor-pointer" type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+                    </div>
+                    <Button type="submit" className="w-full h-11 bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 text-white shadow-lg mt-4" disabled={submitting}>
+                      {submitting ? 'Adding...' : 'Add Shareholder'}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        </div>
       </div>
 
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <PaginationItem key={page}>
-                <PaginationLink onClick={() => setCurrentPage(page)} isActive={page === currentPage} className="cursor-pointer">{page}</PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {/* Premium Shareholders Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        {paginated.map((s, i) => {
+          const progress = (s.total_paid / s.total_share) * 100;
+          const isFullyPaid = s.status === 'fully_paid';
+
+          return (
+            <Link key={s.id} to={`/shareholders/${s.id}`} className="block group">
+              <Card className={`relative overflow-hidden border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl bg-card/40 backdrop-blur-md ${isFullyPaid ? 'border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-emerald-500/10' : 'border-border/50 hover:border-primary/40 hover:shadow-primary/5'}`} style={{ animationDelay: `${i * 50}ms` }}>
+                <div className={`absolute top-0 left-0 w-1 h-full transition-colors ${isFullyPaid ? 'bg-emerald-500' : 'bg-primary'}`}></div>
+
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-4">
+                    {/* Avatar */}
+                    <div className="relative">
+                      {s.profile_image_url ? (
+                        <img src={s.profile_image_url} alt={s.name} className={`w-14 h-14 rounded-2xl object-cover shadow-sm ring-2 ${isFullyPaid ? 'ring-emerald-500/20' : 'ring-primary/20'}`} />
+                      ) : (
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-sm bg-gradient-to-br ${isFullyPaid ? 'from-emerald-400 to-emerald-600' : 'from-cyan-400 to-blue-600'}`}>
+                          {s.name.charAt(0)}
+                        </div>
+                      )}
+                      {isFullyPaid && (
+                        <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 fill-emerald-500/20" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-bold text-foreground truncate text-base group-hover:text-primary transition-colors">{s.name}</h3>
+                        {/* Admin Action Buttons */}
+                        {isAdmin && (
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-lg p-0.5 border border-border shadow-sm">
+                            <button onClick={(e) => openEdit(e, s.id)} className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Edit"><Edit className="w-3.5 h-3.5" /></button>
+                            <button onClick={(e) => openDelete(e, s.id)} className="p-1.5 rounded-md hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 mt-1.5">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Phone className="w-3.5 h-3.5 text-slate-400" />{s.phone}</div>
+                        {s.address && <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate"><MapPin className="w-3.5 h-3.5 text-slate-400" />{s.address}</div>}
+                      </div>
+
+                      {s.num_shares > 1 && (
+                        <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 text-[10px] font-bold uppercase tracking-wider">
+                          {s.num_shares} Shares
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mt-5 pt-4 border-t border-border/50">
+                    <div className="flex justify-between items-end mb-2">
+                      <div>
+                        <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider mb-0.5">Paid Amount</p>
+                        <p className="text-sm font-bold text-foreground">৳{s.total_paid.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-md ${isFullyPaid ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
+                          {isFullyPaid ? '✓ Completed' : `Due: ৳${(s.total_share - s.total_paid).toLocaleString()}`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full transition-all duration-500 ${isFullyPaid ? 'bg-emerald-500' : 'bg-gradient-to-r from-cyan-400 to-blue-500'}`} style={{ width: `${progress}%` }} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+
+      {paginated.length === 0 && (
+        <div className="text-center py-20 bg-card/30 rounded-2xl border border-border border-dashed">
+          <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+          <p className="text-muted-foreground text-lg font-medium">No shareholders found.</p>
+        </div>
       )}
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="pt-4">
+          <Pagination>
+            <PaginationContent className="bg-card/40 backdrop-blur-md border border-border/50 p-1 rounded-xl shadow-sm">
+              <PaginationItem>
+                <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={`rounded-lg ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}`} />
+              </PaginationItem>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <PaginationItem key={page}>
+                  <PaginationLink onClick={() => setCurrentPage(page)} isActive={page === currentPage} className={`rounded-lg cursor-pointer ${page === currentPage ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-muted'}`}>
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={`rounded-lg ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}`} />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      {/* Admin Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit Shareholder</DialogTitle></DialogHeader>
-          <form onSubmit={handleEdit} className="space-y-4">
-            <div><Label>Name</Label><Input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} required /></div>
-            <div><Label>Phone</Label><Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} required /></div>
-            <div><Label>Address</Label><Input value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} /></div>
-            <div><Label>Booking Date</Label><Input type="date" value={editForm.booking_date} onChange={e => setEditForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
-            <div><Label>Number of Shares</Label><Input type="number" min={1} max={10} value={editForm.num_shares} onChange={e => setEditForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
-            <div>
-              <Label>Referred By Director</Label>
+        <DialogContent className="sm:max-w-[500px] border-border/50 bg-background/95 backdrop-blur-xl">
+          <DialogHeader><DialogTitle className="text-xl">Edit Shareholder</DialogTitle></DialogHeader>
+          <form onSubmit={handleEdit} className="space-y-4 mt-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label className="text-foreground/80">Name</Label><Input className="bg-muted/50" value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} required /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Phone</Label><Input className="bg-muted/50" value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} required /></div>
+            </div>
+            <div className="space-y-1.5"><Label className="text-foreground/80">Address</Label><Input className="bg-muted/50" value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label className="text-foreground/80">Booking Date</Label><Input className="bg-muted/50" type="date" value={editForm.booking_date} onChange={e => setEditForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} max={10} value={editForm.num_shares} onChange={e => setEditForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
+            </div>
+            {/* Admin Only Field */}
+            <div className="space-y-1.5 bg-primary/5 p-3 rounded-lg border border-primary/10">
+              <div className="flex items-center gap-2 mb-2"><Activity className="w-4 h-4 text-primary" /><Label className="text-primary font-medium m-0">Admin: Referred By Director</Label></div>
               <Select value={editForm.referred_by_director_id || 'none'} onValueChange={v => setEditForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
-                <SelectTrigger><SelectValue placeholder="Select director" /></SelectTrigger>
+                <SelectTrigger className="bg-background"><SelectValue placeholder="Select director" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">— None —</SelectItem>
                   {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Profile Image</Label>
-              <Input type="file" accept="image/*" onChange={e => setEditImageFile(e.target.files?.[0] || null)} />
-              {editForm.profile_image_url && <img src={editForm.profile_image_url} alt="Current" className="w-16 h-16 rounded-full object-cover mt-2" />}
+            <div className="space-y-1.5">
+              <Label className="text-foreground/80">Profile Image</Label>
+              <div className="flex items-center gap-4">
+                {editForm.profile_image_url && <img src={editForm.profile_image_url} alt="Current" className="w-12 h-12 rounded-xl object-cover ring-2 ring-border" />}
+                <Input className="bg-muted/50 cursor-pointer flex-1" type="file" accept="image/*" onChange={e => setEditImageFile(e.target.files?.[0] || null)} />
+              </div>
             </div>
-            <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>
+            <Button type="submit" className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-lg mt-4" disabled={submitting}>
               {submitting ? 'Updating...' : 'Update Shareholder'}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
 
+      {/* Admin Delete Alert */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-rose-500/20 bg-background/95 backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete this shareholder and all their payment records.</AlertDialogDescription>
+            <AlertDialogTitle className="text-rose-500 flex items-center gap-2"><Trash2 className="w-5 h-5" /> Delete Shareholder</AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground/70">
+              This action cannot be undone. This will permanently delete this shareholder and completely wipe all their payment records from the database.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogCancel className="bg-muted/50 hover:bg-muted border-0">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-500/25">Yes, Delete Permanently</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

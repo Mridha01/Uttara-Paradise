@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Edit, Save, X, Trash2, Home, Store } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Edit, Save, X, Trash2, Home, Store, TrendingUp, Building2, Wallet, Target, Activity, ShieldCheck, Upload, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatBdtBangla } from '@/types';
@@ -30,6 +30,8 @@ export default function Rental() {
   const [submitting, setSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const rooms = rentalConfig?.rooms ?? 20;
   const rentPerRoom = Number(rentalConfig?.rent_per_room ?? 2500);
@@ -60,6 +62,13 @@ export default function Rental() {
     notes: '',
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScreenshotFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
   const openConfig = () => {
     setConfigForm({
       rooms: String(rooms),
@@ -83,9 +92,9 @@ export default function Rental() {
         target_months: Number(configForm.target_months),
         notes: configForm.notes,
       });
-      toast.success('Rental settings updated!');
+      toast.success('Rental settings updated successfully!');
       setEditConfig(false);
-    } catch { toast.error('Failed to save'); }
+    } catch { toast.error('Failed to save settings'); }
     setSavingConfig(false);
   };
 
@@ -108,11 +117,12 @@ export default function Rental() {
         screenshot_url: screenshotUrl,
       });
       setScreenshotFile(null);
+      setPreviewUrl('');
       setAddOpen(false);
-      toast.success('Rental income recorded!');
+      toast.success('Rental income recorded successfully!');
     } catch (err: any) {
       if (err?.message?.includes('unique')) toast.error('This month is already recorded');
-      else toast.error('Failed to add');
+      else toast.error('Failed to add rental record');
     }
     setSubmitting(false);
   };
@@ -121,154 +131,285 @@ export default function Rental() {
     if (!deleteId) return;
     await deleteRentalCollection(deleteId);
     setDeleteId(null);
-    toast.success('Deleted!');
+    toast.success('Rental record deleted!');
   };
 
-  if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
+  if (loading) return (
+    <div className="flex h-[60vh] items-center justify-center">
+      <div className="relative w-16 h-16">
+        <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
+        <div className="absolute inset-2 rounded-full border-r-2 border-fuchsia-500 animate-spin-reverse"></div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-bold text-foreground">🏠 Rental Income Module</h1>
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Button onClick={openConfig} variant="outline" size="sm" className="gap-2"><Edit className="w-3.5 h-3.5" /> Settings</Button>
-            <Dialog open={addOpen} onOpenChange={setAddOpen}>
-              <DialogTrigger asChild>
-                <Button className="gradient-primary text-primary-foreground gap-2"><Plus className="w-4 h-4" /> Add Monthly Rent</Button>
-              </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>Record Monthly Rental Income</DialogTitle></DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Month</Label>
-                      <Select value={form.month} onValueChange={v => setForm(p => ({ ...p, month: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>{MONTHS.map((m, i) => (<SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>))}</SelectContent>
-                      </Select>
-                    </div>
-                    <div><Label>Year</Label><Input type="number" value={form.year} onChange={e => setForm(p => ({ ...p, year: e.target.value }))} /></div>
-                  </div>
-                  <div><Label>Amount Collected (৳)</Label><Input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} required /></div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><Label>Rooms Rented</Label><Input type="number" value={form.rooms} onChange={e => setForm(p => ({ ...p, rooms: e.target.value }))} /></div>
-                    <div><Label>Shops Rented</Label><Input type="number" value={form.shops} onChange={e => setForm(p => ({ ...p, shops: e.target.value }))} /></div>
-                  </div>
-                  <div><Label>Date</Label><Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} /></div>
-                  <div><Label>Notes (optional)</Label><Input value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} /></div>
-                  <div><Label>Screenshot (optional)</Label><Input type="file" accept="image/*" onChange={e => setScreenshotFile(e.target.files?.[0] || null)} /></div>
-                  <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>{submitting ? 'Saving...' : 'Save'}</Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+    <div className="space-y-6 pb-10">
+      {/* Premium Hero Header */}
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-2xl p-6 lg:p-8 group">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-700"></div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="w-full lg:w-auto text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-fuchsia-400 text-xs font-semibold uppercase tracking-wider mb-4 backdrop-blur-md">
+              <Building2 className="w-3 h-3" /> Property Management
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">
+              Rental Income
+            </h1>
           </div>
-        )}
+
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-3">
+            {isAdmin && (
+              <div className="flex w-full sm:w-auto gap-3">
+                <Button onClick={openConfig} className="flex-1 sm:flex-none h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md gap-2 transition-all">
+                  <Edit className="w-4 h-4" /> Settings
+                </Button>
+
+                <Dialog open={addOpen} onOpenChange={setAddOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="flex-1 sm:flex-none h-12 rounded-xl bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-400 hover:to-purple-500 text-white border-0 shadow-lg shadow-fuchsia-500/25 gap-2 transition-all hover:scale-105 px-6">
+                      <Plus className="w-4 h-4" /> Add Income
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto custom-scrollbar border-border/50 bg-background/95 backdrop-blur-xl rounded-2xl">
+                    <DialogHeader><DialogTitle className="text-xl">Record Monthly Rental Income</DialogTitle></DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-foreground/80">Target Month</Label>
+                          <Select value={form.month} onValueChange={v => setForm(p => ({ ...p, month: v }))}>
+                            <SelectTrigger className="bg-muted/50"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {MONTHS.map((m, i) => (<SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5"><Label className="text-foreground/80">Year</Label><Input className="bg-muted/50" type="number" value={form.year} onChange={e => setForm(p => ({ ...p, year: e.target.value }))} /></div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-foreground/80">Amount Collected (৳) *</Label>
+                        <Input className="bg-muted/50 text-lg font-bold" type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} required />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5"><Label className="text-foreground/80">Rooms Rented</Label><Input className="bg-muted/50" type="number" value={form.rooms} onChange={e => setForm(p => ({ ...p, rooms: e.target.value }))} /></div>
+                        <div className="space-y-1.5"><Label className="text-foreground/80">Shops Rented</Label><Input className="bg-muted/50" type="number" value={form.shops} onChange={e => setForm(p => ({ ...p, shops: e.target.value }))} /></div>
+                      </div>
+                      <div className="space-y-1.5"><Label className="text-foreground/80">Collection Date</Label><Input className="bg-muted/50" type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} /></div>
+                      <div className="space-y-1.5"><Label className="text-foreground/80">Notes (optional)</Label><Input className="bg-muted/50" placeholder="e.g. advance payment included" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} /></div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-foreground/80 flex items-center gap-1">Receipt / Slip (Optional)</Label>
+                        <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                        {previewUrl ? (
+                          <div className="relative mt-2 rounded-xl overflow-hidden border border-border/50 bg-muted/30 p-1 group">
+                            <img src={previewUrl} alt="Receipt" className="w-full max-h-48 object-contain rounded-lg" />
+                            <button type="button" onClick={() => { setPreviewUrl(''); setScreenshotFile(null); }} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-rose-500/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-rose-600">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button type="button" onClick={() => fileRef.current?.click()} className="mt-2 w-full border-2 border-dashed border-fuchsia-500/30 bg-fuchsia-500/5 rounded-xl p-8 flex flex-col items-center gap-3 text-muted-foreground hover:border-fuchsia-500 hover:bg-fuchsia-500/10 transition-colors">
+                            <div className="p-3 rounded-full bg-fuchsia-500/10 text-fuchsia-500"><Upload className="w-6 h-6" /></div>
+                            <span className="text-sm font-medium">Click to upload slip</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <Button type="submit" className="w-full h-11 bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-400 hover:to-purple-500 text-white shadow-lg shadow-fuchsia-500/25 mt-4" disabled={submitting}>
+                        {submitting ? 'Recording...' : 'Record Income'}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Config edit panel */}
+      {/* Admin Config Edit Panel */}
       {isAdmin && editConfig && (
-        <Card className="shadow-card border-primary">
-          <CardHeader className="pb-2 flex-row items-center justify-between">
-            <CardTitle className="text-base">⚙️ Rental Configuration</CardTitle>
-            <button onClick={() => setEditConfig(false)} className="p-1 rounded hover:bg-muted"><X className="w-4 h-4" /></button>
+        <Card className="shadow-2xl border-fuchsia-500/30 bg-card/60 backdrop-blur-xl rounded-2xl animate-in fade-in slide-in-from-top-4">
+          <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2 text-fuchsia-500"><Activity className="w-5 h-5" /> Property Configuration</CardTitle>
+            <button onClick={() => setEditConfig(false)} className="p-1.5 rounded-lg hover:bg-muted/80 transition-colors"><X className="w-4 h-4" /></button>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div><Label>রুমের সংখ্যা</Label><Input type="number" value={configForm.rooms} onChange={e => setConfigForm(p => ({ ...p, rooms: e.target.value }))} /></div>
-              <div><Label>প্রতি রুমের ভাড়া (৳)</Label><Input type="number" value={configForm.rent_per_room} onChange={e => setConfigForm(p => ({ ...p, rent_per_room: e.target.value }))} /></div>
-              <div><Label>দোকানের সংখ্যা</Label><Input type="number" value={configForm.shops} onChange={e => setConfigForm(p => ({ ...p, shops: e.target.value }))} /></div>
-              <div><Label>প্রতি দোকানের ভাড়া (৳)</Label><Input type="number" value={configForm.rent_per_shop} onChange={e => setConfigForm(p => ({ ...p, rent_per_shop: e.target.value }))} /></div>
-              <div><Label>লক্ষ্য মাস (২৪ = ২ বছর)</Label><Input type="number" value={configForm.target_months} onChange={e => setConfigForm(p => ({ ...p, target_months: e.target.value }))} /></div>
-              <div><Label>নোট</Label><Input value={configForm.notes} onChange={e => setConfigForm(p => ({ ...p, notes: e.target.value }))} /></div>
+          <CardContent className="space-y-4 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-1.5"><Label className="text-foreground/80">Total Rooms</Label><Input type="number" className="bg-background/50" value={configForm.rooms} onChange={e => setConfigForm(p => ({ ...p, rooms: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Rent Per Room (৳)</Label><Input type="number" className="bg-background/50 font-bold" value={configForm.rent_per_room} onChange={e => setConfigForm(p => ({ ...p, rent_per_room: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Total Shops</Label><Input type="number" className="bg-background/50" value={configForm.shops} onChange={e => setConfigForm(p => ({ ...p, shops: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Rent Per Shop (৳)</Label><Input type="number" className="bg-background/50 font-bold" value={configForm.rent_per_shop} onChange={e => setConfigForm(p => ({ ...p, rent_per_shop: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Target Goal (Months)</Label><Input type="number" className="bg-background/50" value={configForm.target_months} onChange={e => setConfigForm(p => ({ ...p, target_months: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Internal Notes</Label><Input className="bg-background/50" value={configForm.notes} onChange={e => setConfigForm(p => ({ ...p, notes: e.target.value }))} /></div>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleSaveConfig} disabled={savingConfig} className="gradient-primary text-primary-foreground gap-2"><Save className="w-4 h-4" /> {savingConfig ? 'Saving...' : 'Save'}</Button>
-              <Button onClick={() => setEditConfig(false)} variant="outline">Cancel</Button>
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleSaveConfig} disabled={savingConfig} className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white gap-2 shadow-md">
+                <Save className="w-4 h-4" /> {savingConfig ? 'Saving...' : 'Save Configuration'}
+              </Button>
+              <Button onClick={() => setEditConfig(false)} variant="outline" className="bg-background/50">Cancel</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Summary */}
-      <Card className="shadow-card border-primary/40">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">📊 Summary — {targetMonths} মাসের লক্ষ্য</CardTitle>
+      {/* Breakdown Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-card/40 backdrop-blur-md shadow-lg p-6 group hover:-translate-y-1 transition-transform duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-50"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Room Revenue</p>
+              <p className="text-3xl font-extrabold text-foreground tracking-tight">{formatBdtBangla(rooms * rentPerRoom)} <span className="text-sm font-medium text-muted-foreground ml-1">/mo</span></p>
+              <p className="text-xs font-medium text-muted-foreground mt-1 bg-muted/50 inline-block px-2 py-0.5 rounded-md">{rooms} Rooms × ৳{rentPerRoom.toLocaleString()}</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 group-hover:scale-110 transition-transform shadow-inner">
+              <Home className="w-8 h-8" />
+            </div>
+          </div>
+        </div>
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-card/40 backdrop-blur-md shadow-lg p-6 group hover:-translate-y-1 transition-transform duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 opacity-50"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Shop Revenue</p>
+              <p className="text-3xl font-extrabold text-foreground tracking-tight">{formatBdtBangla(shops * rentPerShop)} <span className="text-sm font-medium text-muted-foreground ml-1">/mo</span></p>
+              <p className="text-xs font-medium text-muted-foreground mt-1 bg-muted/50 inline-block px-2 py-0.5 rounded-md">{shops} Shops × ৳{rentPerShop.toLocaleString()}</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 group-hover:scale-110 transition-transform shadow-inner">
+              <Store className="w-8 h-8" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Target Dashboard */}
+      <Card className="shadow-2xl border-fuchsia-500/30 bg-card/60 backdrop-blur-xl overflow-hidden rounded-3xl">
+        <div className="h-1.5 bg-gradient-to-r from-fuchsia-400 via-purple-500 to-indigo-500 w-full"></div>
+        <CardHeader className="pb-2 pt-6">
+          <CardTitle className="text-xl flex items-center gap-2 justify-center sm:justify-start">
+            <Target className="w-6 h-6 text-fuchsia-500" />
+            <span>Target Tracker — {targetMonths} Months</span>
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-center">
-            <div className="p-2 sm:p-3 rounded-lg bg-primary/10">
-              <p className="text-[10px] sm:text-xs text-muted-foreground">প্রত্যাশিত মাসিক</p>
-              <p className="text-sm sm:text-lg font-bold text-primary truncate">{formatBdtBangla(expectedMonthly)}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{rooms} রুম + {shops} দোকান</p>
+        <CardContent className="space-y-6 pt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 text-center transform transition-transform hover:scale-105">
+              <p className="text-[10px] sm:text-xs font-semibold text-primary/80 uppercase tracking-widest mb-1">Expected Monthly</p>
+              <p className="text-xl sm:text-2xl font-extrabold text-primary truncate px-1">{formatBdtBangla(expectedMonthly)}</p>
             </div>
-            <div className="p-2 sm:p-3 rounded-lg bg-success/10">
-              <p className="text-[10px] sm:text-xs text-muted-foreground">সংগৃহীত</p>
-              <p className="text-sm sm:text-lg font-bold text-success truncate">{formatBdtBangla(totalCollected)}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">{monthsCovered} মাস</p>
+
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 text-center transform transition-transform hover:scale-105">
+              <p className="text-[10px] sm:text-xs font-semibold text-emerald-600/80 dark:text-emerald-400/80 uppercase tracking-widest mb-1">Collected</p>
+              <p className="text-xl sm:text-2xl font-extrabold text-emerald-500 truncate px-1">{formatBdtBangla(totalCollected)}</p>
+              <p className="text-xs font-medium text-emerald-500/70 truncate mt-1">{monthsCovered} Months Logged</p>
             </div>
-            <div className="p-2 sm:p-3 rounded-lg bg-warning/10">
-              <p className="text-[10px] sm:text-xs text-muted-foreground">{targetMonths} মাসের লক্ষ্য</p>
-              <p className="text-sm sm:text-lg font-bold text-warning truncate">{formatBdtBangla(targetTotal)}</p>
+
+            <div className="bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-2xl p-4 text-center transform transition-transform hover:scale-105">
+              <p className="text-[10px] sm:text-xs font-semibold text-fuchsia-600/80 dark:text-fuchsia-400/80 uppercase tracking-widest mb-1">{targetMonths} Month Goal</p>
+              <p className="text-xl sm:text-2xl font-extrabold text-fuchsia-500 truncate px-1">{formatBdtBangla(targetTotal)}</p>
             </div>
-            <div className="p-2 sm:p-3 rounded-lg bg-destructive/10">
-              <p className="text-[10px] sm:text-xs text-muted-foreground">এখনো বাকি</p>
-              <p className="text-sm sm:text-lg font-bold text-destructive truncate">{formatBdtBangla(Math.max(0, targetTotal - totalCollected))}</p>
+
+            <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 text-center transform transition-transform hover:scale-105">
+              <p className="text-[10px] sm:text-xs font-semibold text-rose-600/80 dark:text-rose-400/80 uppercase tracking-widest mb-1">Remaining</p>
+              <p className="text-xl sm:text-2xl font-extrabold text-rose-500 truncate px-1">{formatBdtBangla(Math.max(0, targetTotal - totalCollected))}</p>
             </div>
           </div>
-          <div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-muted-foreground">প্রগ্রেস</span>
-              <span className="text-muted-foreground">{Math.round((totalCollected / (targetTotal || 1)) * 100)}%</span>
+
+          <div className="bg-background/50 rounded-2xl p-5 border border-border/50">
+            <div className="flex justify-between items-end mb-3">
+              <div>
+                <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Goal Progress</p>
+              </div>
+              <span className="text-2xl font-extrabold text-fuchsia-500">{Math.round((totalCollected / (targetTotal || 1)) * 100)}%</span>
             </div>
-            <Progress value={(totalCollected / (targetTotal || 1)) * 100} className="h-2" />
+            <div className="h-4 w-full bg-muted rounded-full overflow-hidden border border-border/50 shadow-inner">
+              <div className="h-full bg-gradient-to-r from-fuchsia-400 to-purple-500 transition-all duration-1000 ease-out relative" style={{ width: `${Math.min(100, (totalCollected / (targetTotal || 1)) * 100)}%` }}>
+                <div className="absolute top-0 right-0 bottom-0 left-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')] opacity-20"></div>
+              </div>
+            </div>
           </div>
-          {rentalConfig?.notes && <p className="text-xs text-muted-foreground italic">📝 {rentalConfig.notes}</p>}
+          {rentalConfig?.notes && (
+            <div className="bg-muted/40 p-3 rounded-xl border border-border/50 text-sm text-muted-foreground flex items-start gap-2">
+              <span className="text-lg">📝</span> <span className="mt-0.5">{rentalConfig.notes}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Projection Chart */}
-      <RentalProjectionChart collections={rentalCollections} expectedMonthly={expectedMonthly} targetMonths={targetMonths} />
-
-      {/* Breakdown */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Card className="shadow-card"><CardContent className="p-4 flex items-center gap-3">
-          <Home className="w-8 h-8 text-primary" />
-          <div><p className="text-xs text-muted-foreground">রুম থেকে মাসিক আয়</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(rooms * rentPerRoom)}</p><p className="text-xs text-muted-foreground">{rooms} × ৳{rentPerRoom.toLocaleString()}</p></div>
-        </CardContent></Card>
-        <Card className="shadow-card"><CardContent className="p-4 flex items-center gap-3">
-          <Store className="w-8 h-8 text-warning" />
-          <div><p className="text-xs text-muted-foreground">দোকান থেকে মাসিক আয়</p><p className="text-lg font-bold text-card-foreground">{formatBdtBangla(shops * rentPerShop)}</p><p className="text-xs text-muted-foreground">{shops} × ৳{rentPerShop.toLocaleString()}</p></div>
-        </CardContent></Card>
+      {/* Projection Chart Component */}
+      <div className="rounded-3xl overflow-hidden border border-border bg-card/40 backdrop-blur-md shadow-lg">
+        <RentalProjectionChart collections={rentalCollections} expectedMonthly={expectedMonthly} targetMonths={targetMonths} />
       </div>
 
-      {/* Collection history */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2"><CardTitle className="text-base">মাসিক সংগ্রহ ({rentalCollections.length})</CardTitle></CardHeader>
-        <CardContent>
+      {/* Monthly Collection Ledger */}
+      <Card className="shadow-lg border-border/50 bg-card/40 backdrop-blur-md rounded-3xl overflow-hidden flex flex-col min-h-[400px]">
+        <CardHeader className="bg-muted/20 border-b border-border/50 pb-4 shrink-0">
+          <CardTitle className="text-lg flex items-center justify-between">
+            <div className="flex items-center gap-2"><Wallet className="w-5 h-5 text-emerald-500" /> Income Ledger</div>
+            <Badge variant="outline" className="bg-background">{rentalCollections.length} Records</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 overflow-hidden flex flex-col h-full">
+          {!isAdmin && rentalCollections.some(r => r.screenshot_url) && (
+            <div className="shrink-0 flex items-start gap-3 p-4 m-4 mb-2 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 text-sm text-fuchsia-600 dark:text-fuchsia-400">
+              <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span className="leading-relaxed font-medium">গোপনীয়তার জন্য ভাড়ার রশিদ বা স্লিপ সর্বজনীন ভিউতে লুকানো আছে। শুধু এডমিনরা এটি দেখতে পারবেন।</span>
+            </div>
+          )}
           {rentalCollections.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">এখনো কোনো মাসিক ভাড়ার রেকর্ড নেই</p>
+            <div className="flex-1 flex flex-col items-center justify-center p-12 text-muted-foreground">
+              <Wallet className="w-16 h-16 mb-4 opacity-20" />
+              <p className="font-medium text-lg">No rental income recorded yet</p>
+            </div>
           ) : (
-            <div className="space-y-2">
-              {rentalCollections.map(r => (
-                <div key={r.id} className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg gradient-primary flex items-center justify-center text-primary-foreground font-bold text-[10px] sm:text-xs flex-shrink-0">{MONTHS[r.month - 1].slice(0, 3)}</div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-card-foreground truncate">{MONTHS[r.month - 1]} {r.year}</p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{r.rooms} রুম + {r.shops} দোকান • {r.date}</p>
-                      {r.notes && <p className="text-[10px] sm:text-xs text-muted-foreground italic truncate">📝 {r.notes}</p>}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar max-h-[600px]">
+              {rentalCollections.map((r, i) => (
+                <div
+                  key={r.id}
+                  className="relative overflow-hidden group flex flex-col md:flex-row md:items-center justify-between p-4 sm:p-5 rounded-2xl border border-border/50 bg-background/50 hover:bg-muted/50 transition-all duration-300 hover:border-fuchsia-500/30 hover:shadow-md animate-fade-in"
+                  style={{ animationDelay: `${i * 30}ms` }}
+                >
+                  {/* Left side: Date & Info */}
+                  <div className="flex items-center gap-4 mb-3 md:mb-0">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-sm bg-gradient-to-br from-fuchsia-400 to-purple-600 flex-shrink-0 uppercase tracking-wider">
+                      {MONTHS[r.month - 1].slice(0, 3)}
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-foreground group-hover:text-fuchsia-500 transition-colors">{MONTHS[r.month - 1]} {r.year}</p>
+                      <p className="text-xs font-medium text-muted-foreground mt-0.5">{r.rooms} Rooms • {r.shops} Shops • {new Date(r.date).toLocaleDateString('en-GB')}</p>
+                      {r.notes && <p className="text-xs text-muted-foreground mt-1.5 italic bg-muted/50 inline-block px-2 py-0.5 rounded-md border border-border/50">📝 {r.notes}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                    <Badge className="bg-success text-success-foreground text-[10px] sm:text-xs px-1.5 sm:px-2">৳{Number(r.amount).toLocaleString()}</Badge>
-                    {r.screenshot_url && (
-                      <a href={r.screenshot_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline hidden sm:inline">View</a>
-                    )}
+
+                  {/* Right side: Amount, Badge, Actions */}
+                  <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto mt-2 md:mt-0 pl-16 md:pl-0">
+                    <div className="flex items-center gap-3">
+                      <p className="text-xl font-extrabold text-emerald-500 tracking-tight">৳{Number(r.amount).toLocaleString()}</p>
+                    </div>
+
+                    {/* Admin Tools */}
                     {isAdmin && (
-                      <button onClick={() => setDeleteId(r.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-lg p-1 border border-border shadow-sm ml-2">
+                        {r.screenshot_url && (
+                          <button
+                            onClick={() => window.open(r.screenshot_url, '_blank')}
+                            className="p-1.5 rounded-md hover:bg-fuchsia-500/10 text-muted-foreground hover:text-fuchsia-500 transition-colors flex items-center gap-1 text-xs font-bold"
+                            title="View Receipt"
+                          >
+                            <ImageIcon className="w-4 h-4" /> View
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setDeleteId(r.id)}
+                          className="p-1.5 rounded-md hover:bg-rose-500/10 text-muted-foreground hover:text-rose-500 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -278,10 +419,19 @@ export default function Rental() {
         </CardContent>
       </Card>
 
+      {/* Admin Delete Alert */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Delete Rental Record?</AlertDialogTitle><AlertDialogDescription>This will remove this monthly rental record.</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+        <AlertDialogContent className="border-rose-500/20 bg-background/95 backdrop-blur-xl rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-rose-500 flex items-center gap-2"><Trash2 className="w-5 h-5" /> Delete Record?</AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground/70 text-base">
+              This action cannot be undone. This will permanently delete this monthly rental record from the ledger.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="bg-muted/50 hover:bg-muted border-0">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-500/25 rounded-lg">Yes, Delete Permanently</AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

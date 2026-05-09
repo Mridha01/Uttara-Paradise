@@ -9,8 +9,8 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import Layout from "@/components/Layout";
 
 // Eager: small landing pages users hit first
-import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
+import DashboardV2 from "@/pages/DashboardV2";
 
 // Lazy: heavier pages loaded on demand
 const Shareholders = lazy(() => import("@/pages/Shareholders"));
@@ -51,7 +51,7 @@ const App = () => (
                   <Layout>
                     <Suspense fallback={<PageFallback />}>
                       <Routes>
-                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/" element={<DashboardV2 />} />
                         <Route path="/shareholders" element={<Shareholders />} />
                         <Route path="/shareholders/:id" element={<ShareholderDetail />} />
                         <Route path="/payments" element={<Payments />} />

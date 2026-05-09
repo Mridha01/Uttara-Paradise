@@ -48,7 +48,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Building2 className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">Uttara Vilas</h1>
+            <h1 className="text-lg font-bold text-sidebar-foreground">Uttara Paradise</h1>
             <p className="text-xs text-sidebar-foreground/60">Share Management</p>
           </div>
           <button className="ml-auto lg:hidden text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
