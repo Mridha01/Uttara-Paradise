@@ -23,7 +23,7 @@ export const PROJECT = {
   // ── Building & Land Details ────────────────────
   building: 'B+G+14',          // ✏️ পরিবর্তন করতে এখানে edit করো
   katha: 14,                   // ✏️ জমির পরিমাণ (katha)
-  totalShareholders: 98,       // ✏️ মোট শেয়ারহোল্ডার সংখ্যা
+  totalShareholders: 100,       // ✏️ মোট শেয়ারহোল্ডার সংখ্যা
   totalSharesAvailable: 73,    // ✏️ ডিরেক্টরদের বিক্রি করার জন্য মোট শেয়ার
 
   // ── Address ────────────────────────────────────
