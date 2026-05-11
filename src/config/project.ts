@@ -16,15 +16,15 @@
 
 export const PROJECT = {
   // ── Project Identity ───────────────────────────
-  name: 'UTTARA VILAS',
-  nameBn: 'উত্তরা ভিলাস',
+  name: 'UTTARA PARADISE',
+  nameBn: 'উত্তরা প্যারাডাইস',
   tagline: 'Real Estate Share Project',
 
   // ── Building & Land Details ────────────────────
   building: 'B+G+14',          // ✏️ পরিবর্তন করতে এখানে edit করো
   katha: 14,                   // ✏️ জমির পরিমাণ (katha)
   totalShareholders: 100,       // ✏️ মোট শেয়ারহোল্ডার সংখ্যা
-  totalSharesAvailable: 73,    // ✏️ ডিরেক্টরদের বিক্রি করার জন্য মোট শেয়ার
+  totalSharesAvailable: 75,    // ✏️ ডিরেক্টরদের বিক্রি করার জন্য মোট শেয়ার
 
   // ── Address ────────────────────────────────────
   address: 'Mudafa, Nishat Nagar, Tongi, Gazipur',
