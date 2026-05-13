@@ -1,7 +1,7 @@
 # Project Memory
 
 ## Core
-Uttara Vilas (উত্তরা ভিলাস): Real Estate Share Management System (B+G+13 on 14 katha, 91 shares).
+Uttara Paradise (উত্তরা প্যারাডাইস): Real Estate Share Management System (B+G+13 on 14 katha, 91 shares).
 Lovable Cloud for DB & Storage. Static admin auth (admin@uttaravilas.com).
 All data persistent in database. Images stored in storage buckets.
 Multiple shares per shareholder (num_shares field). Installment module active.
