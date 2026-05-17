@@ -84,10 +84,9 @@ export default function Portal() {
   const installTarget = totalMonths * monthlyAmount;
   const installPct = Math.min(100, (totalInstAmount / installTarget) * 100);
 
-  // Build installment matrix (paid/unpaid) for the target months starting from booking month
-  const bookingDate = new Date(shareholder.booking_date);
-  const startY = bookingDate.getFullYear();
-  const startM = bookingDate.getMonth() + 1;
+  // Build installment matrix (paid/unpaid) for the target months starting from September 2026
+  const startY = 2026;
+  const startM = 9; // September
   const now = new Date();
   const installRows: { month: number; year: number; paid: Installment | null; isPast: boolean }[] = [];
   for (let i = 0; i < totalMonths; i++) {

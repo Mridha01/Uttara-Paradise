@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Printer, Download, X } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,9 +32,7 @@ function buildPrintableHTML(opts: {
   due: number;
 }) {
   const { payment, shareholder, directors, balancePaid, balanceShare, due } = opts;
-  const dirs = directors.length === 0
-    ? Array.from({ length: 5 }).map((_, i) => ({ id: String(i), name: '', role: '', signature_url: '' } as any))
-    : directors.slice(0, 5);
+  const dirs = directors;
 
   const sigCols = dirs.map(d => `
     <td style="width:${100 / dirs.length}%; text-align:center; vertical-align:bottom; padding:0 6px;">
@@ -150,6 +148,13 @@ function buildPrintableHTML(opts: {
 
 export default function PaymentReceipt({ payment, shareholder, directors, open, onOpenChange, totalPaid, totalShare }: Props) {
   const printRef = useRef<HTMLDivElement>(null);
+  const [selectedDirectorIds, setSelectedDirectorIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open && directors.length > 0 && selectedDirectorIds.length === 0) {
+      setSelectedDirectorIds(directors.slice(0, 3).map(d => d.id));
+    }
+  }, [open, directors]);
 
   if (!payment || !shareholder) return null;
 
@@ -157,8 +162,10 @@ export default function PaymentReceipt({ payment, shareholder, directors, open, 
   const balanceShare = totalShare ?? shareholder.total_share;
   const due = Math.max(0, balanceShare - balancePaid);
 
+  const selectedDirectors = directors.filter(d => selectedDirectorIds.includes(d.id));
+
   const openPrintable = (autoPrint: boolean) => {
-    const html = buildPrintableHTML({ payment, shareholder, directors, balancePaid, balanceShare, due });
+    const html = buildPrintableHTML({ payment, shareholder, directors: selectedDirectors, balancePaid, balanceShare, due });
     const w = window.open('', '_blank', 'width=900,height=1000');
     if (!w) return;
     w.document.write(html);
@@ -181,6 +188,30 @@ export default function PaymentReceipt({ payment, shareholder, directors, open, 
             <Button size="sm" variant="outline" onClick={() => openPrintable(true)} className="gap-1.5"><Printer className="w-3.5 h-3.5" /> Print</Button>
             <Button size="sm" onClick={() => openPrintable(true)} className="gap-1.5 gradient-primary text-primary-foreground"><Download className="w-3.5 h-3.5" /> Download PDF</Button>
             <Button size="sm" variant="ghost" onClick={() => onOpenChange(false)}><X className="w-4 h-4" /></Button>
+          </div>
+        </div>
+
+        <div className="bg-muted/50 p-4 border-b border-border">
+          <p className="text-sm font-semibold mb-2">Select Signatures for Receipt (Max 5)</p>
+          <div className="flex flex-wrap gap-2">
+            {directors.map(d => (
+              <label key={d.id} className="flex items-center gap-2 text-sm bg-background px-3 py-1.5 rounded-lg border border-border cursor-pointer hover:bg-muted/80 transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={selectedDirectorIds.includes(d.id)} 
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      if (selectedDirectorIds.length < 5) setSelectedDirectorIds([...selectedDirectorIds, d.id]);
+                    } else {
+                      setSelectedDirectorIds(selectedDirectorIds.filter(id => id !== d.id));
+                    }
+                  }} 
+                  className="rounded border-input accent-primary"
+                />
+                <span className="font-medium">{d.name}</span>
+                <span className="text-xs text-muted-foreground">({d.role})</span>
+              </label>
+            ))}
           </div>
         </div>
 
@@ -240,8 +271,8 @@ export default function PaymentReceipt({ payment, shareholder, directors, open, 
 
             <div className="mt-6 pt-4 border-t border-neutral-200">
               <p className="text-[11px] uppercase text-neutral-500 font-semibold mb-3 text-center">Authorized Signatories</p>
-              <div className={`grid gap-3 ${directors.length <= 3 ? 'grid-cols-3' : directors.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-5'}`}>
-                {(directors.length === 0 ? Array.from({ length: 5 }).map((_, i) => ({ id: String(i), name: '', role: '', signature_url: '' } as any)) : directors).slice(0, 5).map(d => (
+              <div className={`grid gap-3 ${selectedDirectors.length <= 3 ? 'grid-cols-3' : selectedDirectors.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-5'}`}>
+                {selectedDirectors.map(d => (
                   <div key={d.id} className="text-center">
                     <div className="h-14 border-b-2 border-neutral-400 flex items-end justify-center pb-1">
                       {d.signature_url ? <img src={d.signature_url} alt="" className="max-h-12 max-w-full object-contain" /> : null}

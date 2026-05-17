@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Calendar, TrendingDown, Wallet, Receipt, BriefcaseBusiness } from 'lucide-react';
+import { Plus, Calendar, TrendingDown, Wallet, Receipt, BriefcaseBusiness, Pencil, Trash2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,13 +10,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function Expenses() {
-  const { expenses, addExpense, loading } = useApp();
+  const { expenses, addExpense, updateExpense, deleteExpense, loading } = useApp();
   const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' });
+  const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [viewingExpense, setViewingExpense] = useState<any>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const sorted = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -26,14 +33,25 @@ export default function Expenses() {
     if (!form.title.trim() || !form.amount) return;
     setSubmitting(true);
     try {
-      await addExpense({ title: form.title, amount: Number(form.amount), date: form.date, notes: form.notes });
+      if (editingExpense) {
+        await updateExpense(editingExpense.id, { title: form.title, amount: Number(form.amount), date: form.date, notes: form.notes });
+        toast.success('Expense updated successfully!');
+        setEditingExpense(null);
+      } else {
+        await addExpense({ title: form.title, amount: Number(form.amount), date: form.date, notes: form.notes });
+        toast.success('Expense recorded successfully!');
+        setDialogOpen(false);
+      }
       setForm({ title: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' });
-      setDialogOpen(false);
-      toast.success('Expense recorded successfully!');
     } catch {
-      toast.error('Failed to add expense');
+      toast.error('Failed to save expense');
     }
     setSubmitting(false);
+  };
+
+  const handleEditClick = (expense: any) => {
+    setForm({ title: expense.title, amount: String(expense.amount), date: expense.date, notes: expense.notes || '' });
+    setEditingExpense(expense);
   };
 
   if (loading) return (
@@ -144,15 +162,15 @@ export default function Expenses() {
                   <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500/50 group-hover:bg-rose-500 transition-colors"></div>
 
                   {/* Left side: Info */}
-                  <div className="flex items-start sm:items-center gap-4 mb-3 sm:mb-0 pl-2">
+                  <div className="flex items-start sm:items-center gap-4 mb-3 sm:mb-0 pl-2 flex-1 cursor-pointer" onClick={() => setViewingExpense(e)}>
                     <div className="hidden sm:flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-muted border border-border/50 shadow-inner flex-shrink-0">
                       <Calendar className="w-4 h-4 text-muted-foreground mb-0.5" />
                       <span className="text-xs font-bold text-foreground">{new Date(e.date).getDate()}</span>
                       <span className="text-[10px] font-semibold text-muted-foreground uppercase">{new Date(e.date).toLocaleString('default', { month: 'short' })}</span>
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-base sm:text-lg font-bold text-foreground group-hover:text-rose-500 transition-colors">{e.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <p className="text-xs font-medium text-muted-foreground sm:hidden">
                           {new Date(e.date).toLocaleDateString('en-GB')}
                         </p>
@@ -165,11 +183,21 @@ export default function Expenses() {
                     </div>
                   </div>
 
-                  {/* Right side: Amount */}
-                  <div className="flex items-center justify-end">
-                    <Badge variant="outline" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-sm sm:text-base px-3 py-1 font-bold">
+                  {/* Right side: Amount and Actions */}
+                  <div className="flex items-center justify-end gap-3">
+                    <Badge variant="outline" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-sm sm:text-base px-3 py-1 font-bold whitespace-nowrap">
                       ৳{e.amount.toLocaleString()}
                     </Badge>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <button onClick={(ev) => { ev.stopPropagation(); handleEditClick(e); }} className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary" title="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={(ev) => { ev.stopPropagation(); setDeleteId(e.id); }} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -177,6 +205,75 @@ export default function Expenses() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent className="border-rose-500/20 bg-background/95 backdrop-blur-xl rounded-2xl">
+          <AlertDialogHeader><AlertDialogTitle className="text-rose-500 flex items-center gap-2"><Trash2 className="w-5 h-5" /> Delete this expense?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted/50 hover:bg-muted border-0">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => { if (deleteId) { await deleteExpense(deleteId); setDeleteId(null); toast.success('Deleted'); } }} className="bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-500/25 rounded-lg">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={!!editingExpense} onOpenChange={(o) => { if (!o) { setEditingExpense(null); setForm({ title: '', amount: '', date: new Date().toISOString().split('T')[0], notes: '' }); } }}>
+        <DialogContent className="sm:max-w-[450px] border-border/50 bg-background/95 backdrop-blur-xl rounded-2xl">
+          <DialogHeader><DialogTitle className="text-xl">Edit Expense</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-foreground/80">Expense Title *</Label>
+              <Input className="bg-muted/50" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-foreground/80">Amount (৳) *</Label>
+                <Input className="bg-muted/50 text-lg font-bold text-rose-500" type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} min={1} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-foreground/80">Date</Label>
+                <Input className="bg-muted/50" type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-foreground/80">Description / Notes</Label>
+              <Textarea className="bg-muted/50 resize-none" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={3} />
+            </div>
+            <Button type="submit" className="w-full h-11 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 text-white shadow-lg shadow-rose-500/25 mt-4" disabled={submitting}>
+              {submitting ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewingExpense} onOpenChange={(o) => !o && setViewingExpense(null)}>
+        <DialogContent className="sm:max-w-md border-border/50 bg-background/95 backdrop-blur-xl rounded-2xl">
+          <DialogHeader><DialogTitle className="text-xl">Expense Details</DialogTitle></DialogHeader>
+          {viewingExpense && (
+            <div className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="col-span-2">
+                  <p className="text-muted-foreground font-medium mb-1 uppercase tracking-wider text-[10px]">Title</p>
+                  <p className="font-semibold text-foreground text-lg">{viewingExpense.title}</p>
+                </div>
+                <div className="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">
+                  <p className="text-rose-600/80 dark:text-rose-400/80 font-bold mb-1 uppercase tracking-wider text-[10px]">Amount</p>
+                  <p className="font-extrabold text-rose-500 text-xl">৳{Number(viewingExpense.amount).toLocaleString()}</p>
+                </div>
+                <div className="bg-muted/30 p-3 rounded-xl border border-border/50">
+                  <p className="text-muted-foreground font-medium mb-1 uppercase tracking-wider text-[10px]">Date</p>
+                  <p className="font-medium text-foreground">{new Date(viewingExpense.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                </div>
+              </div>
+              <div className="border-t border-border/50 pt-4">
+                <p className="text-muted-foreground font-medium mb-2 uppercase tracking-wider text-[10px]">Notes & Description</p>
+                <div className="bg-muted/30 p-4 rounded-xl border border-border/50 text-sm whitespace-pre-wrap leading-relaxed">
+                  {viewingExpense.notes || <span className="text-muted-foreground italic">No description provided</span>}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

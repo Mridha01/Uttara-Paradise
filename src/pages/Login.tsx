@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building2, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import { PROJECT } from '@/config/project';
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -36,7 +37,7 @@ export default function Login() {
             <Building2 className="w-8 h-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold text-card-foreground">Admin Login</CardTitle>
-          <p className="text-sm text-muted-foreground">Uttara Vilas - Directors Panel</p>
+          <p className="text-sm text-muted-foreground">{PROJECT.name} - Directors Panel</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -48,7 +49,7 @@ export default function Login() {
                   id="email"
                   type="email"
                   className="pl-9"
-                  placeholder="admin@uttaravilas.com"
+                  placeholder="admin@uttaraparadise.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required

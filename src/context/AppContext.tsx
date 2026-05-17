@@ -23,7 +23,10 @@ interface AppContextType {
   addPayment: (p: Omit<Payment, 'id' | 'created_at'>) => Promise<Payment | null>;
   deletePayment: (id: string) => Promise<void>;
   addExpense: (e: Omit<Expense, 'id' | 'created_at'>) => Promise<void>;
+  updateExpense: (id: string, e: Partial<Expense>) => Promise<void>;
+  deleteExpense: (id: string) => Promise<void>;
   addPrivateExpense: (e: Omit<PrivateExpense, 'id' | 'created_at'>) => Promise<void>;
+  updatePrivateExpense: (id: string, e: Partial<PrivateExpense>) => Promise<void>;
   deletePrivateExpense: (id: string) => Promise<void>;
   addDirector: (d: Omit<Director, 'id' | 'created_at'>) => Promise<void>;
   updateDirector: (id: string, d: Partial<Director>) => Promise<void>;
@@ -209,8 +212,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await fetchAll();
   }, [fetchAll]);
 
+  const updateExpense = useCallback(async (id: string, e: Partial<Expense>) => {
+    await supabase.from('expenses').update(e as any).eq('id', id);
+    await fetchAll();
+  }, [fetchAll]);
+
+  const deleteExpense = useCallback(async (id: string) => {
+    await supabase.from('expenses').delete().eq('id', id);
+    await fetchAll();
+  }, [fetchAll]);
+
   const addPrivateExpense = useCallback(async (e: Omit<PrivateExpense, 'id' | 'created_at'>) => {
     await (supabase.from as any)('private_expenses').insert({ title: e.title, amount: e.amount, date: e.date, notes: e.notes || '', category: e.category || '' });
+    await fetchAll();
+  }, [fetchAll]);
+
+  const updatePrivateExpense = useCallback(async (id: string, e: Partial<PrivateExpense>) => {
+    await (supabase.from as any)('private_expenses').update(e).eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
@@ -330,8 +348,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       shareholders, payments, expenses, notifications, activities, directors, directorRoles, installments, settings,
       projectContent, rentalConfig, rentalCollections, privateExpenses, loading,
       addShareholder, updateShareholder, deleteShareholder,
-      addPayment, deletePayment, addExpense,
-      addPrivateExpense, deletePrivateExpense,
+      addPayment, deletePayment, addExpense, updateExpense, deleteExpense,
+      addPrivateExpense, updatePrivateExpense, deletePrivateExpense,
       addDirector, updateDirector, deleteDirector,
       addDirectorRole, deleteDirectorRole,
       addInstallment, deleteInstallment,

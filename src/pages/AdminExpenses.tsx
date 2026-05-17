@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Plus, Trash2, Lock, Download } from 'lucide-react';
+import { Plus, Trash2, Lock, Download, Pencil, Eye } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,12 +17,14 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function AdminExpenses() {
-  const { privateExpenses, addPrivateExpense, deletePrivateExpense, loading } = useApp();
+  const { privateExpenses, addPrivateExpense, updatePrivateExpense, deletePrivateExpense, loading } = useApp();
   const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ title: '', amount: '', date: new Date().toISOString().split('T')[0], category: '', notes: '' });
+  const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [viewingExpense, setViewingExpense] = useState<any>(null);
 
   if (!isAdmin) return <Navigate to="/login" replace />;
 
@@ -34,12 +36,23 @@ export default function AdminExpenses() {
     if (!form.title.trim() || !form.amount) return;
     setSubmitting(true);
     try {
-      await addPrivateExpense({ title: form.title, amount: Number(form.amount), date: form.date, category: form.category, notes: form.notes });
+      if (editingExpense) {
+        await updatePrivateExpense(editingExpense.id, { title: form.title, amount: Number(form.amount), date: form.date, category: form.category, notes: form.notes });
+        toast.success('Private expense updated!');
+        setEditingExpense(null);
+      } else {
+        await addPrivateExpense({ title: form.title, amount: Number(form.amount), date: form.date, category: form.category, notes: form.notes });
+        toast.success('Private expense added!');
+        setDialogOpen(false);
+      }
       setForm({ title: '', amount: '', date: new Date().toISOString().split('T')[0], category: '', notes: '' });
-      setDialogOpen(false);
-      toast.success('Private expense added!');
-    } catch { toast.error('Failed to add'); }
+    } catch { toast.error('Failed to save'); }
     setSubmitting(false);
+  };
+
+  const handleEditClick = (expense: any) => {
+    setForm({ title: expense.title, amount: String(expense.amount), date: expense.date, category: expense.category || '', notes: expense.notes || '' });
+    setEditingExpense(expense);
   };
 
   const downloadCSV = () => {
@@ -104,18 +117,23 @@ export default function AdminExpenses() {
           ) : (
             <div className="space-y-2">
               {sorted.map(e => (
-                <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 gap-3">
-                  <div className="flex-1 min-w-0">
+                <div key={e.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 gap-3 group">
+                  <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setViewingExpense(e)}>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-card-foreground">{e.title}</p>
+                      <p className="text-sm font-medium text-card-foreground group-hover:text-primary transition-colors">{e.title}</p>
                       {e.category && <Badge variant="outline" className="text-[10px]">{e.category}</Badge>}
                     </div>
-                    <p className="text-xs text-muted-foreground">{e.date}{e.notes ? ` • ${e.notes}` : ''}</p>
+                    <p className="text-xs text-muted-foreground">{e.date}</p>
                   </div>
                   <p className="text-sm font-semibold text-warning whitespace-nowrap">৳{Number(e.amount).toLocaleString()}</p>
-                  <button onClick={() => setDeleteId(e.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleEditClick(e)} className="p-1.5 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary" title="Edit">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => setDeleteId(e.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive" title="Delete">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -132,6 +150,54 @@ export default function AdminExpenses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!editingExpense} onOpenChange={(o) => { if (!o) { setEditingExpense(null); setForm({ title: '', amount: '', date: new Date().toISOString().split('T')[0], category: '', notes: '' }); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Private Expense</DialogTitle></DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div><Label>Title *</Label><Input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} required /></div>
+            <div><Label>Amount (৳) *</Label><Input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} min={1} required /></div>
+            <div><Label>Category</Label><Input value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} placeholder="চা, যাতায়াত, মিটিং..." /></div>
+            <div><Label>Date</Label><Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} /></div>
+            <div><Label>Notes</Label><Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={3} /></div>
+            <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>{submitting ? 'Saving...' : 'Save Changes'}</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewingExpense} onOpenChange={(o) => !o && setViewingExpense(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Private Expense Details</DialogTitle></DialogHeader>
+          {viewingExpense && (
+            <div className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground font-medium mb-1">Title</p>
+                  <p className="font-semibold text-foreground">{viewingExpense.title}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground font-medium mb-1">Amount</p>
+                  <p className="font-bold text-warning text-lg">৳{Number(viewingExpense.amount).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground font-medium mb-1">Date</p>
+                  <p className="font-medium text-foreground">{new Date(viewingExpense.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground font-medium mb-1">Category</p>
+                  {viewingExpense.category ? <Badge variant="outline">{viewingExpense.category}</Badge> : <span className="text-muted-foreground">—</span>}
+                </div>
+              </div>
+              <div className="border-t border-border pt-4">
+                <p className="text-muted-foreground font-medium mb-2 text-sm">Notes & Description</p>
+                <div className="bg-muted/30 p-3 rounded-lg border border-border/50 text-sm whitespace-pre-wrap">
+                  {viewingExpense.notes || <span className="text-muted-foreground italic">No notes provided</span>}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

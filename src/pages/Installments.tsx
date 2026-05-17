@@ -27,11 +27,11 @@ export default function Installments() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewShareholderId, setViewShareholderId] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedMonth, setSelectedMonth] = useState(9);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const monthlyAmount = Number(settings.installment_amount) || INSTALLMENT_AMOUNT;
   const totalMonths = Number(settings.installment_months) || INSTALLMENT_MONTHS;
-  const [form, setForm] = useState({ shareholder_id: '', amount: String(monthlyAmount), month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()), date: new Date().toISOString().split('T')[0] });
+  const [form, setForm] = useState({ shareholder_id: '', amount: String(monthlyAmount), month: '9', year: String(new Date().getFullYear()), date: new Date().toISOString().split('T')[0] });
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
