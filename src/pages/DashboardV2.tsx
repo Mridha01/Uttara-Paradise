@@ -2,6 +2,7 @@ import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileT
 import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST, formatBdtBangla } from '@/types';
+import { PROJECT } from '@/config/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -65,8 +66,9 @@ export default function DashboardV2() {
               <Activity className="w-3 h-3" /> Live Overview
             </div>
             <h1 className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-2 drop-shadow-md">
-              Uttara Paradise
+              {PROJECT.name}
             </h1>
+            <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest mb-3">A project by Prottasa Holdings</p>
             <p className="text-slate-300 text-lg max-w-xl leading-relaxed">
               Modern Real Estate Share Management System. <span className="text-white font-semibold">{totalShares} of {target}</span> shares secured.
             </p>
