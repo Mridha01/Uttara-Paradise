@@ -17,6 +17,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { Director } from '@/types';
+import { PROJECT } from '@/config/project';
 
 export default function Directors() {
   const { isAdmin } = useAuth();
@@ -100,10 +101,11 @@ export default function Directors() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Directors</h1>
-          <p className="text-sm text-muted-foreground">Uttara Vilas প্রকল্পের পরিচালনা পর্ষদ</p>
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Board of Directors</h1>
+          <p className="text-sm font-semibold text-primary uppercase tracking-wider mt-1">{PROJECT.name} by Prottasa Holdings</p>
+          <p className="text-sm text-muted-foreground mt-0.5">প্রকল্পের পরিচালনা পর্ষদ</p>
         </div>
         {isAdmin && (
           <div className="flex gap-2">
@@ -113,33 +115,45 @@ export default function Directors() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {directors.map((d, i) => (
-          <Card key={d.id} className="shadow-card hover:shadow-elevated transition-shadow cursor-pointer animate-fade-in" style={{ animationDelay: `${i * 60}ms` }} onClick={() => { setSelected(d); setEditing(null); }}>
-            <CardContent className="p-5">
-              <div className="flex flex-col items-center text-center gap-3">
-                {d.image_url ? (
-                  <img src={d.image_url} alt={d.name} className="w-28 h-28 rounded-full object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-28 h-28 rounded-full gradient-primary flex items-center justify-center text-primary-foreground font-bold text-3xl flex-shrink-0">{d.name.charAt(0)}</div>
-                )}
-                <div>
-                  <h3 className="font-semibold text-card-foreground text-lg">{d.name}</h3>
-                  <p className="text-sm text-muted-foreground">{d.role}</p>
-                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-1"><Phone className="w-3 h-3" /> {d.phone}</div>
-                </div>
-                {isAdmin && (
-                  <div className="flex gap-1">
-                    <button onClick={(e) => { e.stopPropagation(); setSelected(d); setEditing({ ...d }); }} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Edit className="w-4 h-4" /></button>
-                    <button onClick={(e) => { e.stopPropagation(); setDeleteId(d.id); }} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="w-4 h-4" /></button>
+          <div key={d.id} className="relative group cursor-pointer animate-fade-in" style={{ animationDelay: `${i * 60}ms` }} onClick={() => { setSelected(d); setEditing(null); }}>
+            <div className="absolute -inset-0.5 bg-gradient-to-br from-primary/50 to-blue-500/50 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <Card className="relative h-full overflow-hidden rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl shadow-lg transition-transform duration-300 group-hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-gray-500/5"></div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex flex-col items-center text-center gap-4">
+                  <div className="relative">
+                    {d.image_url ? (
+                      <img src={d.image_url} alt={d.name} className="w-32 h-32 rounded-full object-cover shadow-2xl ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300 flex-shrink-0" />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold text-4xl shadow-2xl ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300 flex-shrink-0">{d.name.charAt(0)}</div>
+                    )}
+                    <div className="absolute inset-0 rounded-full shadow-inner pointer-events-none"></div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  <div>
+                    <h3 className="font-extrabold text-foreground text-xl tracking-tight">{d.name}</h3>
+                    <Badge variant="secondary" className="mt-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">{d.role}</Badge>
+                    <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground mt-3 font-medium">
+                      <Phone className="w-3.5 h-3.5 text-primary/70" /> {d.phone}
+                    </div>
+                  </div>
+                  {isAdmin && (
+                    <div className="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <button onClick={(e) => { e.stopPropagation(); setSelected(d); setEditing({ ...d }); }} className="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors shadow-sm" title="Edit Director"><Edit className="w-4 h-4" /></button>
+                      <button onClick={(e) => { e.stopPropagation(); setDeleteId(d.id); }} className="p-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors shadow-sm" title="Delete Director"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         ))}
         {directors.length === 0 && (
-          <p className="text-sm text-muted-foreground col-span-full text-center py-8">No directors yet</p>
+          <div className="col-span-full py-16 text-center border-2 border-dashed border-border rounded-2xl bg-muted/20">
+            <p className="text-muted-foreground font-medium">No directors added yet</p>
+            {isAdmin && <Button onClick={() => setAddOpen(true)} className="mt-4 gradient-primary">Add First Director</Button>}
+          </div>
         )}
       </div>
 

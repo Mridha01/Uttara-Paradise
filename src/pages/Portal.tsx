@@ -85,6 +85,7 @@ export default function Portal() {
   const installPct = Math.min(100, (totalInstAmount / installTarget) * 100);
 
   // Build installment matrix (paid/unpaid) for the target months starting from September 2026
+  const bookingDate = new Date(shareholder.booking_date);
   const startY = 2026;
   const startM = 9; // September
   const now = new Date();
@@ -107,6 +108,7 @@ export default function Portal() {
           </div>
           <div className="flex-1">
             <h1 className="text-base font-bold text-foreground">{PROJECT.name}</h1>
+            <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-0.5">A project by Prottasa Holdings</p>
             <p className="text-xs text-muted-foreground">{PROJECT.nameBn} • শেয়ারহোল্ডার পোর্টাল</p>
           </div>
           <Badge variant="outline" className="text-xs">Read-only</Badge>

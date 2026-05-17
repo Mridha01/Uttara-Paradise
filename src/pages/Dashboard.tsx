@@ -2,6 +2,7 @@ import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileT
 import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST, formatBdtBangla } from '@/types';
+import { PROJECT } from '@/config/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,8 @@ export default function Dashboard() {
         <div className="absolute inset-0 gradient-glow pointer-events-none" />
         <div className="relative flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">🏗️ <span>Uttara Vilas</span></h2>
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">🏗️ <span>{PROJECT.name}</span></h2>
+            <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1 mt-0.5">A project by Prottasa Holdings</p>
             <p className="text-muted-foreground text-sm mt-1">{totalShares} of {target} shares sold • <span className="text-primary font-semibold">{formatBdtBangla(totalCollected)}</span> collected</p>
           </div>
           <div className="text-right">
