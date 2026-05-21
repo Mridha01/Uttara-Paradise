@@ -18,6 +18,7 @@ const ShareholderDetail = lazy(() => import("@/pages/ShareholderDetail"));
 const Payments = lazy(() => import("@/pages/Payments"));
 const Expenses = lazy(() => import("@/pages/Expenses"));
 const AdminExpenses = lazy(() => import("@/pages/AdminExpenses"));
+const AdminLedger = lazy(() => import("@/pages/AdminLedger"));
 const Notifications = lazy(() => import("@/pages/Notifications"));
 const ProjectDetails = lazy(() => import("@/pages/ProjectDetails"));
 const Directors = lazy(() => import("@/pages/Directors"));
@@ -57,6 +58,7 @@ const App = () => (
                         <Route path="/payments" element={<Payments />} />
                         <Route path="/expenses" element={<Expenses />} />
                         <Route path="/admin-expenses" element={<AdminExpenses />} />
+                        <Route path="/admin-ledger" element={<AdminLedger />} />
                         <Route path="/installments" element={<Installments />} />
                         <Route path="/rental" element={<Rental />} />
                         <Route path="/notifications" element={<Notifications />} />

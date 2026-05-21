@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck, LogIn, LogOut, Calendar, Home, TrendingUp, Lock, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Receipt, Bell, Menu, X, Building2, FileText, UserCheck, LogIn, LogOut, Calendar, Home, TrendingUp, Lock, Sun, Moon, FileSpreadsheet } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -21,6 +21,7 @@ const navItems = [
 
 const adminOnlyNavItems = [
   { to: '/director-sales', icon: TrendingUp, label: 'Director Sales' },
+  { to: '/admin-ledger', icon: FileSpreadsheet, label: 'Shareholder Ledger' },
   { to: '/admin-expenses', icon: Lock, label: 'Private Expenses' },
 ];
 

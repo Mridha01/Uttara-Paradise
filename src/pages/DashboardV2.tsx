@@ -1,6 +1,7 @@
-import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck, Calendar, Home, ArrowUpRight, Activity, Receipt } from 'lucide-react';
+import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck, Calendar, Home, ArrowUpRight, Activity, Receipt, FileSpreadsheet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST, formatBdtBangla } from '@/types';
 import { PROJECT } from '@/config/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 
 export default function DashboardV2() {
   const { shareholders, expenses, activities, installments, rentalCollections, settings, loading } = useApp();
+  const { isAdmin } = useAuth();
 
   if (loading) return (
     <div className="flex h-[60vh] items-center justify-center">
@@ -276,6 +278,13 @@ export default function DashboardV2() {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-4 pt-4">
+        {isAdmin && (
+          <Link to="/admin-ledger">
+            <Button className="rounded-full px-6 gradient-primary text-primary-foreground gap-2 font-semibold shadow-md">
+              <FileSpreadsheet className="w-4 h-4" /> Shareholder Ledger 🔒
+            </Button>
+          </Link>
+        )}
         <Link to="/project">
           <Button className="rounded-full px-6 bg-foreground text-background hover:bg-foreground/90 gap-2 font-semibold shadow-md">
             <FileText className="w-4 h-4" /> Project Documents
