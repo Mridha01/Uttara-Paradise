@@ -464,17 +464,17 @@ export default function ProjectDetails() {
 
       {/* Contact CTA */}
       <Card className="shadow-2xl border-primary/20 bg-gradient-to-br from-primary/5 to-transparent backdrop-blur-md rounded-3xl overflow-hidden text-center mt-8">
-        <CardContent className="p-10 lg:p-14">
+        <CardContent className="p-6 sm:p-10 lg:p-14">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center mb-6">
             <Phone className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-3">Ready to Join Us?</h2>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">Ready to Join Us?</h2>
+          <p className="text-muted-foreground text-sm sm:text-base mb-8 max-w-md mx-auto">
             Contact the Board of Directors of Prottasa Holdings to learn more about availability, booking details, and securing your share.
           </p>
-          <Link to="/directors">
-            <Button className="h-12 px-8 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg shadow-primary/25 text-base font-semibold gap-2 transition-all hover:scale-105">
-              <Users className="w-5 h-5" /> View Directors & Contact Info
+          <Link to="/directors" className="inline-block w-full sm:w-auto">
+            <Button className="w-full sm:w-auto h-auto min-h-12 py-3 px-6 sm:px-8 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg shadow-primary/25 text-sm sm:text-base font-semibold gap-2 transition-all hover:scale-105 inline-flex items-center justify-center whitespace-normal text-center">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" /> View Directors & Contact Info
             </Button>
           </Link>
         </CardContent>
