@@ -120,8 +120,13 @@ export default function ProjectDetails() {
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-blue-300 text-[10px] font-bold uppercase tracking-widest mb-4 backdrop-blur-md">
-              <Star className="w-3 h-3" /> Exclusive Real Estate
+            <div className="flex flex-wrap gap-2 mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-blue-300 text-[10px] font-bold uppercase tracking-widest backdrop-blur-md">
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" /> Exclusive Real Estate
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold uppercase tracking-widest backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" /> By Prottasa Holdings
+              </div>
             </div>
             <h1 className="text-3xl lg:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-2">
               {hero.title.replace('Uttara Vilas', 'Uttara Paradise')}
@@ -465,7 +470,7 @@ export default function ProjectDetails() {
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-3">Ready to Join Us?</h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Contact our board of directors to learn more about availability, booking details, and securing your share.
+            Contact the Board of Directors of Prottasa Holdings to learn more about availability, booking details, and securing your share.
           </p>
           <Link to="/directors">
             <Button className="h-12 px-8 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg shadow-primary/25 text-base font-semibold gap-2 transition-all hover:scale-105">
