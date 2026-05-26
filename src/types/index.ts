@@ -12,6 +12,7 @@ export interface Shareholder {
   total_paid: number;
   status: 'booked' | 'partial' | 'fully_paid';
   referred_by_director_id?: string | null;
+  referred_by_directors?: Record<string, number> | null;
   portal_token?: string | null;
   created_at: string;
 }

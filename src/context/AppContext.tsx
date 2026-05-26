@@ -131,11 +131,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Generate a portal token (random 32-hex chars)
     const tokenBytes = crypto.getRandomValues(new Uint8Array(16));
     const portalToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    let primaryDirectorId = s.referred_by_director_id || null;
+    if (!primaryDirectorId && s.referred_by_directors && Object.keys(s.referred_by_directors).length > 0) {
+      primaryDirectorId = Object.keys(s.referred_by_directors)[0];
+    }
+
     await supabase.from('shareholders').insert({
       name: s.name, phone: s.phone, address: s.address,
       profile_image_url: s.profile_image_url, booking_date: s.booking_date,
       num_shares: s.num_shares, total_share: totalShare,
-      referred_by_director_id: s.referred_by_director_id || null,
+      referred_by_director_id: primaryDirectorId,
+      referred_by_directors: s.referred_by_directors || {},
       portal_token: portalToken,
     } as any);
     await addNotification(`New shareholder: ${s.name}`, 'shareholder');
@@ -146,6 +153,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateShareholder = useCallback(async (id: string, updates: Partial<Shareholder>) => {
     if (updates.num_shares) {
       updates.total_share = updates.num_shares * TOTAL_SHARE_AMOUNT;
+    }
+    if (updates.referred_by_directors && Object.keys(updates.referred_by_directors).length > 0) {
+      updates.referred_by_director_id = Object.keys(updates.referred_by_directors)[0];
     }
     await supabase.from('shareholders').update(updates as any).eq('id', id);
     await fetchAll();

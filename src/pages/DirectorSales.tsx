@@ -17,19 +17,45 @@ export default function DirectorSales() {
     const map = new Map<string, { director: typeof directors[0] | null; shareholders: typeof shareholders; totalShares: number; totalValue: number; totalCollected: number }>();
     directors.forEach(d => map.set(d.id, { director: d, shareholders: [], totalShares: 0, totalValue: 0, totalCollected: 0 }));
     map.set('__none__', { director: null, shareholders: [], totalShares: 0, totalValue: 0, totalCollected: 0 });
+    
     shareholders.forEach(s => {
-      const key = s.referred_by_director_id || '__none__';
-      const entry = map.get(key) || map.get('__none__')!;
-      entry.shareholders.push(s);
-      entry.totalShares += s.num_shares;
-      entry.totalValue += s.total_share;
-      entry.totalCollected += s.total_paid;
+      const dist: Record<string, number> = {};
+      if (s.referred_by_directors && Object.keys(s.referred_by_directors).length > 0) {
+        Object.entries(s.referred_by_directors).forEach(([dirId, count]) => {
+          dist[dirId] = count;
+        });
+      } else if (s.referred_by_director_id) {
+        dist[s.referred_by_director_id] = s.num_shares;
+      } else {
+        dist['__none__'] = s.num_shares;
+      }
+
+      Object.entries(dist).forEach(([directorId, sharesCount]) => {
+        const key = map.has(directorId) ? directorId : '__none__';
+        const entry = map.get(key)!;
+        const ratio = s.num_shares > 0 ? sharesCount / s.num_shares : 0;
+        
+        entry.shareholders.push({
+          ...s,
+          num_shares: sharesCount,
+          total_share: Math.round(s.total_share * ratio),
+          total_paid: Math.round(s.total_paid * ratio),
+        });
+        
+        entry.totalShares += sharesCount;
+        entry.totalValue += s.total_share * ratio;
+        entry.totalCollected += s.total_paid * ratio;
+      });
     });
     return Array.from(map.values()).filter(e => e.shareholders.length > 0 || e.director);
   }, [directors, shareholders]);
 
   const totalSharesSold = shareholders.reduce((s, sh) => s + sh.num_shares, 0);
-  const totalAssigned = shareholders.filter(s => s.referred_by_director_id).reduce((s, sh) => s + sh.num_shares, 0);
+  const totalAssigned = useMemo(() => {
+    return stats
+      .filter(e => e.director !== null)
+      .reduce((sum, entry) => sum + entry.totalShares, 0);
+  }, [stats]);
   const TARGET_TOTAL = 73;
 
   const downloadCSV = () => {
@@ -144,7 +170,7 @@ export default function DirectorSales() {
                 {entry.shareholders.length > 0 && (
                   <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                     {entry.shareholders.map(s => (
-                      <div key={s.id} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-xs">
+                      <div key={`${key}-${s.id}`} className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-xs">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           {s.profile_image_url ? (
                             <img src={s.profile_image_url} alt={s.name} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />

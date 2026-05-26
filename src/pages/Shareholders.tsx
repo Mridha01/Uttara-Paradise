@@ -37,29 +37,62 @@ export default function Shareholders() {
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1', referred_by_director_id: '' });
   const [editForm, setEditForm] = useState({ name: '', phone: '', address: '', booking_date: '', num_shares: '1', profile_image_url: '', referred_by_director_id: '' });
+  
+  interface ReferenceSplit {
+    directorId: string;
+    sharesCount: number;
+  }
+  const [isSplit, setIsSplit] = useState(false);
+  const [formSplits, setFormSplits] = useState<ReferenceSplit[]>([]);
+  const [editIsSplit, setEditIsSplit] = useState(false);
+  const [editFormSplits, setEditFormSplits] = useState<ReferenceSplit[]>([]);
 
   const filtered = shareholders.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search));
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
+  const totalFormSplits = formSplits.reduce((acc, s) => acc + (Number(s.sharesCount) || 0), 0);
+  const totalEditFormSplits = editFormSplits.reduce((acc, s) => acc + (Number(s.sharesCount) || 0), 0);
+  
+  const isFormInvalid = isSplit && Number(form.num_shares) > 1 && totalFormSplits !== Number(form.num_shares);
+  const isEditFormInvalid = editIsSplit && Number(editForm.num_shares) > 1 && totalEditFormSplits !== Number(editForm.num_shares);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.phone.trim()) return;
+    if (!form.name.trim() || !form.phone.trim() || isFormInvalid) return;
     setSubmitting(true);
     try {
       let imageUrl = '';
       if (imageFile) {
         imageUrl = await uploadImage('shareholder-images', imageFile, 'profiles');
       }
+
+      let referred_by_directors: Record<string, number> = {};
+      let referred_by_director_id = form.referred_by_director_id || null;
+      
+      if (isSplit && Number(form.num_shares) > 1) {
+        formSplits.forEach(split => {
+          if (split.directorId) {
+            referred_by_directors[split.directorId] = (referred_by_directors[split.directorId] || 0) + split.sharesCount;
+          }
+        });
+        referred_by_director_id = formSplits[0]?.directorId || null;
+      } else if (form.referred_by_director_id) {
+        referred_by_directors = { [form.referred_by_director_id]: Number(form.num_shares) || 1 };
+      }
+
       await addShareholder({
         name: form.name, phone: form.phone, address: form.address,
         profile_image_url: imageUrl, booking_date: form.booking_date,
         num_shares: Number(form.num_shares) || 1,
         total_share: (Number(form.num_shares) || 1) * TOTAL_SHARE_AMOUNT,
-        referred_by_director_id: form.referred_by_director_id || null,
+        referred_by_director_id: referred_by_director_id,
+        referred_by_directors: referred_by_directors,
       });
       setForm({ name: '', phone: '', address: '', booking_date: new Date().toISOString().split('T')[0], num_shares: '1', referred_by_director_id: '' });
       setImageFile(null);
+      setIsSplit(false);
+      setFormSplits([]);
       setDialogOpen(false);
       toast.success('Shareholder added successfully!');
     } catch { toast.error('Failed to add shareholder'); }
@@ -72,24 +105,55 @@ export default function Shareholders() {
     if (!s) return;
     setSelectedId(id);
     setEditForm({ name: s.name, phone: s.phone, address: s.address, booking_date: s.booking_date, num_shares: String(s.num_shares), profile_image_url: s.profile_image_url, referred_by_director_id: s.referred_by_director_id || '' });
+    
+    let splits: ReferenceSplit[] = [];
+    let isSplitActive = false;
+    if (s.referred_by_directors && Object.keys(s.referred_by_directors).length > 0) {
+      splits = Object.entries(s.referred_by_directors).map(([dirId, count]) => ({
+        directorId: dirId,
+        sharesCount: count,
+      }));
+      isSplitActive = Object.keys(s.referred_by_directors).length > 1;
+    } else if (s.referred_by_director_id) {
+      splits = [{ directorId: s.referred_by_director_id, sharesCount: s.num_shares }];
+    }
+    
+    setEditFormSplits(splits);
+    setEditIsSplit(isSplitActive);
     setEditImageFile(null);
     setEditDialogOpen(true);
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedId) return;
+    if (!selectedId || isEditFormInvalid) return;
     setSubmitting(true);
     try {
       let imageUrl = editForm.profile_image_url;
       if (editImageFile) {
         imageUrl = await uploadImage('shareholder-images', editImageFile, 'profiles');
       }
+
+      let referred_by_directors: Record<string, number> = {};
+      let referred_by_director_id = editForm.referred_by_director_id || null;
+      
+      if (editIsSplit && Number(editForm.num_shares) > 1) {
+        editFormSplits.forEach(split => {
+          if (split.directorId) {
+            referred_by_directors[split.directorId] = (referred_by_directors[split.directorId] || 0) + split.sharesCount;
+          }
+        });
+        referred_by_director_id = editFormSplits[0]?.directorId || null;
+      } else if (editForm.referred_by_director_id) {
+        referred_by_directors = { [editForm.referred_by_director_id]: Number(editForm.num_shares) || 1 };
+      }
+
       await updateShareholder(selectedId, {
         name: editForm.name, phone: editForm.phone, address: editForm.address,
         booking_date: editForm.booking_date, profile_image_url: imageUrl,
         num_shares: Number(editForm.num_shares) || 1,
-        referred_by_director_id: editForm.referred_by_director_id || null,
+        referred_by_director_id: referred_by_director_id,
+        referred_by_directors: referred_by_directors,
       });
       setEditDialogOpen(false);
       toast.success('Shareholder updated successfully!');
@@ -168,21 +232,115 @@ export default function Shareholders() {
                       <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} max={10} value={form.num_shares} onChange={e => setForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
                     </div>
                     {/* Admin Only Field */}
-                    <div className="space-y-1.5 bg-primary/5 p-3 rounded-lg border border-primary/10">
-                      <div className="flex items-center gap-2 mb-2"><Activity className="w-4 h-4 text-primary" /><Label className="text-primary font-medium m-0">Admin: Referred By Director</Label></div>
-                      <Select value={form.referred_by_director_id || 'none'} onValueChange={v => setForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
-                        <SelectTrigger className="bg-background"><SelectValue placeholder="Select director" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">— None —</SelectItem>
-                          {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-3 bg-primary/5 p-3 rounded-lg border border-primary/10">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Activity className="w-4 h-4 text-primary" />
+                        <Label className="text-primary font-medium m-0">Admin: Referred By Director</Label>
+                      </div>
+
+                      {Number(form.num_shares) > 1 && (
+                        <div className="flex items-center justify-between p-2 rounded bg-muted/40 border border-border/40 mb-1">
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-semibold text-foreground/80">একাধিক ডিরেক্টর রেফারেন্স (Split Reference)</span>
+                            <span className="text-[9px] text-muted-foreground">শেয়ারগুলো একাধিক ডিরেক্টরের মধ্যে বন্টন করুন</span>
+                          </div>
+                          <input 
+                            type="checkbox" 
+                            checked={isSplit} 
+                            onChange={(e) => {
+                              setIsSplit(e.target.checked);
+                              if (e.target.checked && formSplits.length === 0) {
+                                setFormSplits([{ directorId: form.referred_by_director_id || '', sharesCount: 1 }]);
+                              }
+                            }} 
+                            className="w-4 h-4 rounded border-input text-primary focus:ring-primary cursor-pointer accent-primary"
+                          />
+                        </div>
+                      )}
+
+                      {!isSplit || Number(form.num_shares) <= 1 ? (
+                        <Select value={form.referred_by_director_id || 'none'} onValueChange={v => setForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
+                          <SelectTrigger className="bg-background"><SelectValue placeholder="Select director" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">— None —</SelectItem>
+                            {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="space-y-2 mt-1">
+                          <div className="flex justify-between items-center bg-background/50 p-1.5 rounded border border-border/30">
+                            <span className="text-[10px] font-bold text-foreground/75">বন্টন তালিকা</span>
+                            <span className={`text-[10px] font-bold ${totalFormSplits === Number(form.num_shares) ? 'text-emerald-500' : 'text-rose-500 animate-pulse'}`}>
+                              {totalFormSplits === Number(form.num_shares) 
+                                ? `✓ বন্টন মিলেছে (${totalFormSplits}/${form.num_shares})` 
+                                : `⚠️ বরাদ্দ: ${totalFormSplits} / ${form.num_shares} শেয়ার`}
+                            </span>
+                          </div>
+                          
+                          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                            {formSplits.map((split, index) => (
+                              <div key={index} className="flex items-center gap-1.5 bg-background p-1.5 rounded-md border border-border/40">
+                                <div className="flex-1">
+                                  <Select 
+                                    value={split.directorId || 'none'} 
+                                    onValueChange={v => {
+                                      const newSplits = [...formSplits];
+                                      newSplits[index].directorId = v === 'none' ? '' : v;
+                                      setFormSplits(newSplits);
+                                    }}
+                                  >
+                                    <SelectTrigger className="h-8 text-xs bg-muted/20"><SelectValue placeholder="সিলেক্ট ডিরেক্টর" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">— None —</SelectItem>
+                                      {directors.map(d => <SelectItem key={d.id} value={d.id} className="text-xs">{d.name}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="w-16">
+                                  <Input 
+                                    type="number" 
+                                    min={1} 
+                                    max={Number(form.num_shares)}
+                                    value={split.sharesCount} 
+                                    onChange={e => {
+                                      const val = Math.max(1, Number(e.target.value) || 1);
+                                      const newSplits = [...formSplits];
+                                      newSplits[index].sharesCount = val;
+                                      setFormSplits(newSplits);
+                                    }}
+                                    className="h-8 text-xs text-center px-1"
+                                    placeholder="Shares"
+                                  />
+                                </div>
+                                <button 
+                                  type="button" 
+                                  onClick={() => {
+                                    setFormSplits(formSplits.filter((_, i) => i !== index));
+                                  }}
+                                  className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setFormSplits([...formSplits, { directorId: '', sharesCount: 1 }])}
+                            className="w-full h-8 text-[10px] border-dashed gap-1 bg-background hover:bg-muted/50"
+                          >
+                            <Plus className="w-3 h-3" /> ডিরেক্টর যোগ করুন
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-foreground/80">Profile Image</Label>
                       <Input className="bg-muted/50 cursor-pointer" type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
                     </div>
-                    <Button type="submit" className="w-full h-11 bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 text-white shadow-lg mt-4" disabled={submitting}>
+                    <Button type="submit" className="w-full h-11 bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 text-white shadow-lg mt-4" disabled={submitting || isFormInvalid}>
                       {submitting ? 'Adding...' : 'Add Shareholder'}
                     </Button>
                   </form>
@@ -317,15 +475,109 @@ export default function Shareholders() {
               <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} max={10} value={editForm.num_shares} onChange={e => setEditForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
             </div>
             {/* Admin Only Field */}
-            <div className="space-y-1.5 bg-primary/5 p-3 rounded-lg border border-primary/10">
-              <div className="flex items-center gap-2 mb-2"><Activity className="w-4 h-4 text-primary" /><Label className="text-primary font-medium m-0">Admin: Referred By Director</Label></div>
-              <Select value={editForm.referred_by_director_id || 'none'} onValueChange={v => setEditForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
-                <SelectTrigger className="bg-background"><SelectValue placeholder="Select director" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— None —</SelectItem>
-                  {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3 bg-primary/5 p-3 rounded-lg border border-primary/10">
+              <div className="flex items-center gap-2 mb-1">
+                <Activity className="w-4 h-4 text-primary" />
+                <Label className="text-primary font-medium m-0">Admin: Referred By Director</Label>
+              </div>
+
+              {Number(editForm.num_shares) > 1 && (
+                <div className="flex items-center justify-between p-2 rounded bg-muted/40 border border-border/40 mb-1">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-semibold text-foreground/80">একাধিক ডিরেক্টর রেফারেন্স (Split Reference)</span>
+                    <span className="text-[9px] text-muted-foreground">শেয়ারগুলো একাধিক ডিরেক্টরের মধ্যে বন্টন করুন</span>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={editIsSplit} 
+                    onChange={(e) => {
+                      setEditIsSplit(e.target.checked);
+                      if (e.target.checked && editFormSplits.length === 0) {
+                        setEditFormSplits([{ directorId: editForm.referred_by_director_id || '', sharesCount: 1 }]);
+                      }
+                    }} 
+                    className="w-4 h-4 rounded border-input text-primary focus:ring-primary cursor-pointer accent-primary"
+                  />
+                </div>
+              )}
+
+              {!editIsSplit || Number(editForm.num_shares) <= 1 ? (
+                <Select value={editForm.referred_by_director_id || 'none'} onValueChange={v => setEditForm(p => ({ ...p, referred_by_director_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger className="bg-background"><SelectValue placeholder="Select director" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— None —</SelectItem>
+                    {directors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} ({d.role})</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-2 mt-1">
+                  <div className="flex justify-between items-center bg-background/50 p-1.5 rounded border border-border/30">
+                    <span className="text-[10px] font-bold text-foreground/75">বন্টন তালিকা</span>
+                    <span className={`text-[10px] font-bold ${totalEditFormSplits === Number(editForm.num_shares) ? 'text-emerald-500' : 'text-rose-500 animate-pulse'}`}>
+                      {totalEditFormSplits === Number(editForm.num_shares) 
+                        ? `✓ বন্টন মিলেছে (${totalEditFormSplits}/${editForm.num_shares})` 
+                        : `⚠️ বরাদ্দ: ${totalEditFormSplits} / ${editForm.num_shares} শেয়ার`}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {editFormSplits.map((split, index) => (
+                      <div key={index} className="flex items-center gap-1.5 bg-background p-1.5 rounded-md border border-border/40">
+                        <div className="flex-1">
+                          <Select 
+                            value={split.directorId || 'none'} 
+                            onValueChange={v => {
+                              const newSplits = [...editFormSplits];
+                              newSplits[index].directorId = v === 'none' ? '' : v;
+                              setEditFormSplits(newSplits);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-xs bg-muted/20"><SelectValue placeholder="সিলেক্ট ডিরেক্টর" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">— None —</SelectItem>
+                              {directors.map(d => <SelectItem key={d.id} value={d.id} className="text-xs">{d.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="w-16">
+                          <Input 
+                            type="number" 
+                            min={1} 
+                            max={Number(editForm.num_shares)}
+                            value={split.sharesCount} 
+                            onChange={e => {
+                              const val = Math.max(1, Number(e.target.value) || 1);
+                              const newSplits = [...editFormSplits];
+                              newSplits[index].sharesCount = val;
+                              setEditFormSplits(newSplits);
+                            }}
+                            className="h-8 text-xs text-center px-1"
+                            placeholder="Shares"
+                          />
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            setEditFormSplits(editFormSplits.filter((_, i) => i !== index));
+                          }}
+                          className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditFormSplits([...editFormSplits, { directorId: '', sharesCount: 1 }])}
+                    className="w-full h-8 text-[10px] border-dashed gap-1 bg-background hover:bg-muted/50"
+                  >
+                    <Plus className="w-3 h-3" /> ডিরেক্টর যোগ করুন
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-foreground/80">Profile Image</Label>
@@ -334,7 +586,7 @@ export default function Shareholders() {
                 <Input className="bg-muted/50 cursor-pointer flex-1" type="file" accept="image/*" onChange={e => setEditImageFile(e.target.files?.[0] || null)} />
               </div>
             </div>
-            <Button type="submit" className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-lg mt-4" disabled={submitting}>
+            <Button type="submit" className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white shadow-lg mt-4" disabled={submitting || isEditFormInvalid}>
               {submitting ? 'Updating...' : 'Update Shareholder'}
             </Button>
           </form>

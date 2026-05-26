@@ -387,6 +387,7 @@ export type Database = {
           portal_token: string | null
           profile_image_url: string | null
           referred_by_director_id: string | null
+          referred_by_directors: Json | null
           status: string
           total_paid: number
           total_share: number
@@ -402,6 +403,7 @@ export type Database = {
           portal_token?: string | null
           profile_image_url?: string | null
           referred_by_director_id?: string | null
+          referred_by_directors?: Json | null
           status?: string
           total_paid?: number
           total_share?: number
@@ -417,6 +419,7 @@ export type Database = {
           portal_token?: string | null
           profile_image_url?: string | null
           referred_by_director_id?: string | null
+          referred_by_directors?: Json | null
           status?: string
           total_paid?: number
           total_share?: number
