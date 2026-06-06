@@ -82,7 +82,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       (supabase.from as any)('rental_collections').select('*').order('year', { ascending: false }).order('month', { ascending: false }),
       (supabase.from as any)('private_expenses').select('*').order('date', { ascending: false }),
     ]);
-    if (shRes.data) setShareholders(shRes.data as unknown as Shareholder[]);
+    let splits: Record<string, Record<string, number>> = {};
+    if (pcRes?.data) {
+      const cmap: Record<string, any> = {};
+      (pcRes.data as any[]).forEach(r => { cmap[r.section] = r.content; });
+      setProjectContent(cmap);
+      if (cmap['shareholder_splits']) {
+        splits = cmap['shareholder_splits'];
+      }
+    }
+    if (shRes.data) {
+      const mapped = (shRes.data as any[]).map(sh => ({
+        ...sh,
+        referred_by_directors: splits[sh.id] || (sh.referred_by_director_id ? { [sh.referred_by_director_id]: sh.num_shares } : {})
+      }));
+      setShareholders(mapped as unknown as Shareholder[]);
+    }
     if (payRes.data) setPayments(payRes.data as unknown as Payment[]);
     if (expRes.data) setExpenses(expRes.data as unknown as Expense[]);
     if (notRes.data) setNotifications(notRes.data as unknown as Notification[]);
@@ -94,11 +109,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const map: Record<string, string> = {};
       (setRes.data as ProjectSetting[]).forEach(r => { map[r.key] = r.value; });
       setSettings(map);
-    }
-    if (pcRes?.data) {
-      const cmap: Record<string, any> = {};
-      (pcRes.data as any[]).forEach(r => { cmap[r.section] = r.content; });
-      setProjectContent(cmap);
     }
     if (rcRes?.data) setRentalConfig(rcRes.data as unknown as RentalConfig);
     if (rclRes?.data) setRentalCollections(rclRes.data as unknown as RentalCollection[]);
@@ -137,32 +147,90 @@ export function AppProvider({ children }: { children: ReactNode }) {
       primaryDirectorId = Object.keys(s.referred_by_directors)[0];
     }
 
-    await supabase.from('shareholders').insert({
+    // Insert shareholder WITHOUT referred_by_directors column
+    const { data: inserted, error: insertError } = await supabase.from('shareholders').insert({
       name: s.name, phone: s.phone, address: s.address,
       profile_image_url: s.profile_image_url, booking_date: s.booking_date,
       num_shares: s.num_shares, total_share: totalShare,
       referred_by_director_id: primaryDirectorId,
-      referred_by_directors: s.referred_by_directors || {},
       portal_token: portalToken,
-    } as any);
+    } as any).select().single();
+
+    if (insertError) {
+      console.error('Error inserting shareholder:', insertError);
+      throw insertError;
+    }
+
+    if (inserted && s.referred_by_directors && Object.keys(s.referred_by_directors).length > 0) {
+      // Get current splits
+      const { data: existingPC } = await (supabase.from as any)('project_content').select('content').eq('section', 'shareholder_splits').maybeSingle();
+      const currentSplits = existingPC?.content || {};
+      currentSplits[inserted.id] = s.referred_by_directors;
+      
+      const { data: existing } = await (supabase.from as any)('project_content').select('id').eq('section', 'shareholder_splits').maybeSingle();
+      if (existing?.id) {
+        await (supabase.from as any)('project_content').update({ content: currentSplits, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      } else {
+        await (supabase.from as any)('project_content').insert({ section: 'shareholder_splits', content: currentSplits });
+      }
+    }
+
     await addNotification(`New shareholder: ${s.name}`, 'shareholder');
     await addActivity(`${s.name} added as shareholder`, 'shareholder');
     await fetchAll();
   }, [fetchAll]);
 
   const updateShareholder = useCallback(async (id: string, updates: Partial<Shareholder>) => {
-    if (updates.num_shares) {
-      updates.total_share = updates.num_shares * TOTAL_SHARE_AMOUNT;
+    const dbUpdates = { ...updates };
+    delete dbUpdates.referred_by_directors;
+
+    if (dbUpdates.num_shares) {
+      dbUpdates.total_share = dbUpdates.num_shares * TOTAL_SHARE_AMOUNT;
     }
     if (updates.referred_by_directors && Object.keys(updates.referred_by_directors).length > 0) {
-      updates.referred_by_director_id = Object.keys(updates.referred_by_directors)[0];
+      dbUpdates.referred_by_director_id = Object.keys(updates.referred_by_directors)[0];
     }
-    await supabase.from('shareholders').update(updates as any).eq('id', id);
+
+    const { error: updateError } = await supabase.from('shareholders').update(dbUpdates as any).eq('id', id);
+    if (updateError) {
+      console.error('Error updating shareholder:', updateError);
+      throw updateError;
+    }
+
+    if (updates.referred_by_directors) {
+      const { data: existingPC } = await (supabase.from as any)('project_content').select('content').eq('section', 'shareholder_splits').maybeSingle();
+      const currentSplits = existingPC?.content || {};
+      currentSplits[id] = updates.referred_by_directors;
+      
+      const { data: existing } = await (supabase.from as any)('project_content').select('id').eq('section', 'shareholder_splits').maybeSingle();
+      if (existing?.id) {
+        await (supabase.from as any)('project_content').update({ content: currentSplits, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      } else {
+        await (supabase.from as any)('project_content').insert({ section: 'shareholder_splits', content: currentSplits });
+      }
+    }
+
     await fetchAll();
   }, [fetchAll]);
 
   const deleteShareholder = useCallback(async (id: string) => {
-    await supabase.from('shareholders').delete().eq('id', id);
+    const { error: deleteError } = await supabase.from('shareholders').delete().eq('id', id);
+    if (deleteError) {
+      console.error('Error deleting shareholder:', deleteError);
+      throw deleteError;
+    }
+
+    // Clean up splits
+    const { data: existingPC } = await (supabase.from as any)('project_content').select('content').eq('section', 'shareholder_splits').maybeSingle();
+    if (existingPC?.content && existingPC.content[id]) {
+      const currentSplits = existingPC.content;
+      delete currentSplits[id];
+      const { data: existing } = await (supabase.from as any)('project_content').select('id').eq('section', 'shareholder_splits').maybeSingle();
+      if (existing?.id) {
+        await (supabase.from as any)('project_content').update({ content: currentSplits, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      }
+    }
+
     await addNotification('Shareholder removed', 'shareholder');
     await addActivity('Shareholder removed', 'shareholder');
     await fetchAll();
