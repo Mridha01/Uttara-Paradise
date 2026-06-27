@@ -151,3 +151,19 @@ export function formatBdtBangla(amount: number): string {
   if (abs >= 1000) return `${sign}৳${(amount / 1000).toFixed(1).replace(/\.0$/, '')} হাজার`;
   return `${sign}৳${amount.toLocaleString()}`;
 }
+
+/**
+ * Mask the middle digits of a phone number for privacy.
+ * e.g. "01765324545" → "017****4545"
+ * Works for BD numbers (11 digits) and international formats like +8801711...
+ */
+export function maskPhone(phone: string): string {
+  if (!phone) return '';
+  const clean = phone.replace(/[\s\-().]/g, '');
+  if (clean.length < 8) return phone;
+  const prefixLen = Math.min(3, Math.floor(clean.length * 0.3));
+  const suffixLen = 4;
+  const maskLen = clean.length - prefixLen - suffixLen;
+  if (maskLen <= 0) return phone;
+  return clean.slice(0, prefixLen) + '*'.repeat(maskLen) + clean.slice(-suffixLen);
+}

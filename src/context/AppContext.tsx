@@ -21,6 +21,7 @@ interface AppContextType {
   updateShareholder: (id: string, s: Partial<Shareholder>) => Promise<void>;
   deleteShareholder: (id: string) => Promise<void>;
   addPayment: (p: Omit<Payment, 'id' | 'created_at'>) => Promise<Payment | null>;
+  updatePayment: (id: string, updates: Partial<Pick<Payment, 'amount' | 'date' | 'type' | 'notes' | 'screenshot_url'>>) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
   addExpense: (e: Omit<Expense, 'id' | 'created_at'>) => Promise<void>;
   updateExpense: (id: string, e: Partial<Expense>) => Promise<void>;
@@ -138,7 +139,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addShareholder = useCallback(async (s: Omit<Shareholder, 'id' | 'total_paid' | 'status' | 'created_at'>) => {
     const totalShare = s.num_shares * TOTAL_SHARE_AMOUNT;
-    // Generate a portal token (random 32-hex chars)
     const tokenBytes = crypto.getRandomValues(new Uint8Array(16));
     const portalToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('');
     
@@ -147,7 +147,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       primaryDirectorId = Object.keys(s.referred_by_directors)[0];
     }
 
-    // Insert shareholder WITHOUT referred_by_directors column
     const { data: inserted, error: insertError } = await supabase.from('shareholders').insert({
       name: s.name, phone: s.phone, address: s.address,
       profile_image_url: s.profile_image_url, booking_date: s.booking_date,
@@ -162,7 +161,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     if (inserted && s.referred_by_directors && Object.keys(s.referred_by_directors).length > 0) {
-      // Get current splits
       const { data: existingPC } = await (supabase.from as any)('project_content').select('content').eq('section', 'shareholder_splits').maybeSingle();
       const currentSplits = existingPC?.content || {};
       currentSplits[inserted.id] = s.referred_by_directors;
@@ -220,7 +218,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       throw deleteError;
     }
 
-    // Clean up splits
     const { data: existingPC } = await (supabase.from as any)('project_content').select('content').eq('section', 'shareholder_splits').maybeSingle();
     if (existingPC?.content && existingPC.content[id]) {
       const currentSplits = existingPC.content;
@@ -242,7 +239,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (p.type === 'booking' && p.amount > MAX_BOOKING_AMOUNT * (sh.num_shares || 1)) return null;
     if (sh.total_paid + p.amount > sh.total_share) return null;
 
-    // Generate human-readable receipt no: UV-YYYYMM-XXXX (sequence per month)
     const d = new Date(p.date);
     const ym = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
     const monthCount = payments.filter(x => {
@@ -266,6 +262,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await fetchAll();
     return inserted as unknown as Payment;
   }, [shareholders, payments, fetchAll]);
+
+  // ── NEW: updatePayment ──────────────────────────────────────────────────────
+  const updatePayment = useCallback(async (
+    id: string,
+    updates: Partial<Pick<Payment, 'amount' | 'date' | 'type' | 'notes' | 'screenshot_url'>>
+  ) => {
+    const oldPayment = payments.find(p => p.id === id);
+    if (!oldPayment) throw new Error('Payment not found');
+
+    // Update the payments row
+    await supabase.from('payments').update(updates as any).eq('id', id);
+
+    // If the amount changed, recalculate the shareholder's total_paid & status
+    if (updates.amount !== undefined && updates.amount !== oldPayment.amount) {
+      const sh = shareholders.find(s => s.id === oldPayment.shareholder_id);
+      if (sh) {
+        const diff = updates.amount - oldPayment.amount;
+        const newTotalPaid = Math.max(0, sh.total_paid + diff);
+        const newStatus = newTotalPaid >= sh.total_share ? 'fully_paid' : newTotalPaid > 0 ? 'partial' : 'booked';
+        await supabase.from('shareholders').update({ total_paid: newTotalPaid, status: newStatus } as any).eq('id', sh.id);
+      }
+    }
+
+    await addActivity(`Payment updated — new amount ৳${(updates.amount ?? oldPayment.amount).toLocaleString()}`, 'payment');
+    await fetchAll();
+  }, [payments, shareholders, fetchAll]);
+  // ───────────────────────────────────────────────────────────────────────────
 
   const deletePayment = useCallback(async (id: string) => {
     const payment = payments.find(p => p.id === id);
@@ -426,7 +449,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       shareholders, payments, expenses, notifications, activities, directors, directorRoles, installments, settings,
       projectContent, rentalConfig, rentalCollections, privateExpenses, loading,
       addShareholder, updateShareholder, deleteShareholder,
-      addPayment, deletePayment, addExpense, updateExpense, deleteExpense,
+      addPayment, updatePayment, deletePayment,
+      addExpense, updateExpense, deleteExpense,
       addPrivateExpense, updatePrivateExpense, deletePrivateExpense,
       addDirector, updateDirector, deleteDirector,
       addDirectorRole, deleteDirectorRole,

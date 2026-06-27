@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Phone, MapPin, Edit, Trash2, Users, Activity, CheckCircle2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { TOTAL_SHARE_AMOUNT } from '@/types';
+import { TOTAL_SHARE_AMOUNT, maskPhone } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -394,7 +394,7 @@ export default function Shareholders() {
                       </div>
 
                       <div className="space-y-1 mt-1.5">
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Phone className="w-3.5 h-3.5 text-slate-400" />{s.phone}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Phone className="w-3.5 h-3.5 text-slate-400" />{maskPhone(s.phone)}</div>
                         {s.address && <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate"><MapPin className="w-3.5 h-3.5 text-slate-400" />{s.address}</div>}
                       </div>
 
