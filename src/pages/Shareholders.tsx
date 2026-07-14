@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Phone, MapPin, Edit, Trash2, Users, Activity, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Phone, MapPin, Edit, Trash2, Users, Activity, CheckCircle2, Filter } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { TOTAL_SHARE_AMOUNT, maskPhone } from '@/types';
@@ -24,7 +24,7 @@ import {
 const ITEMS_PER_PAGE = 12;
 
 export default function Shareholders() {
-  const { shareholders, addShareholder, updateShareholder, deleteShareholder, directors, loading } = useApp();
+  const { shareholders, payments, settings, addShareholder, updateShareholder, deleteShareholder, directors, loading } = useApp();
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -32,6 +32,7 @@ export default function Shareholders() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'booking' | 'fully_paid'>('all');
   const [submitting, setSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
@@ -47,7 +48,21 @@ export default function Shareholders() {
   const [editIsSplit, setEditIsSplit] = useState(false);
   const [editFormSplits, setEditFormSplits] = useState<ReferenceSplit[]>([]);
 
-  const filtered = shareholders.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search));
+  const filtered = shareholders.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search);
+    if (!matchesSearch) return false;
+
+    if (isAdmin && paymentFilter !== 'all') {
+      const bookingMax = settings ? (Number(settings.booking_max) || 50000) : 50000;
+      const hasPaidBooking = s.total_paid >= bookingMax * (s.num_shares || 1) || 
+                            (payments && payments.some(p => p.shareholder_id === s.id && p.type === 'booking'));
+      const isFullyPaid = s.status === 'fully_paid' || s.total_paid >= s.total_share;
+
+      if (paymentFilter === 'booking') return hasPaidBooking;
+      if (paymentFilter === 'fully_paid') return isFullyPaid;
+    }
+    return true;
+  });
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -211,6 +226,20 @@ export default function Shareholders() {
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               />
             </div>
+
+            {isAdmin && (
+              <Select value={paymentFilter} onValueChange={val => { setPaymentFilter(val as any); setCurrentPage(1); }}>
+                <SelectTrigger className="w-full sm:w-48 h-11 rounded-xl bg-white/10 border-white/20 text-white focus:bg-white/20 transition-colors backdrop-blur-md gap-2">
+                  <Filter className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <SelectValue placeholder="Filter by payment" />
+                </SelectTrigger>
+                <SelectContent className="border-border/50 bg-background/95 backdrop-blur-xl">
+                  <SelectItem value="all">All Members</SelectItem>
+                  <SelectItem value="booking">Booking Paid</SelectItem>
+                  <SelectItem value="fully_paid">Fully Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
 
             {isAdmin && (
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
