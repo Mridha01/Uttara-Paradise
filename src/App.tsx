@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import Layout from "@/components/Layout";
+import InstallPrompt from "@/components/InstallPrompt";
 
 // Eager: small landing pages users hit first
 import Login from "@/pages/Login";
@@ -41,6 +42,7 @@ const App = () => (
     <ThemeProvider>
     <TooltipProvider>
       <Sonner />
+      <InstallPrompt />
       <BrowserRouter>
         <AuthProvider>
           <AppProvider>
