@@ -41,8 +41,9 @@ function buildPrintableLedgerHTML(opts: {
     partialCount: number;
     bookedCount: number;
   };
+  reportLabel?: string;
 }) {
-  const { shareholders, directors, totals, summaryStats } = opts;
+  const { shareholders, directors, totals, summaryStats, reportLabel } = opts;
 
   // Prepare table rows
   const rows = shareholders.map((s, idx) => {
@@ -126,11 +127,11 @@ function buildPrintableLedgerHTML(opts: {
     <div class="header">
       <div>
         <h1>${PROJECT.name}</h1>
-        <p class="sub">${PROJECT.nameBn} — Shareholder Financial Ledger</p>
+        <p class="sub">${PROJECT.nameBn} — Shareholder Financial Ledger${reportLabel ? ` (${reportLabel})` : ''}</p>
         <p class="meta">${BUILDING_LINE} • Office: ${PROJECT.address}</p>
       </div>
       <div style="text-align: right;">
-        <span class="badge">Official Ledger Sheet</span>
+        <span class="badge">${reportLabel ? `${reportLabel} Report` : 'Official Ledger Sheet'}</span>
         <p class="meta" style="margin-top: 6px;">Report Date: <strong>${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</strong></p>
         <p class="meta">System Time: <strong>${new Date().toLocaleTimeString('en-GB')}</strong></p>
       </div>
@@ -224,6 +225,7 @@ export default function AdminLedger() {
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDirectorIds, setSelectedDirectorIds] = useState<string[]>([]);
+  const [printFilter, setPrintFilter] = useState<'all' | 'booked' | 'partial' | 'fully_paid'>('all');
 
   // Route security guard
   if (!isAdmin) return <Navigate to="/login" replace />;
@@ -294,11 +296,25 @@ export default function AdminLedger() {
   // Print/PDF Handler
   const handlePrint = () => {
     const selectedDirectors = directors.filter(d => selectedDirectorIds.includes(d.id));
+
+    // Filter by selected report type (independent of on-screen filter)
+    const printFriendlyShareholders = [...shareholders]
+      .filter(s => printFilter === 'all' || s.status === printFilter)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    if (printFriendlyShareholders.length === 0) {
+      toast.warning('এই ক্যাটাগরিতে কোনো শেয়ারহোল্ডার নেই');
+      return;
+    }
+
+    // Totals computed from the printed subset
+    const subsetValue = printFriendlyShareholders.reduce((s, h) => s + (h.total_share || 0), 0);
+    const subsetPaid = printFriendlyShareholders.reduce((s, h) => s + (h.total_paid || 0), 0);
     const totals = {
-      shares: totalShares,
-      value: totalValue,
-      paid: totalPaid,
-      due: totalDue
+      shares: printFriendlyShareholders.reduce((s, h) => s + (h.num_shares || 0), 0),
+      value: subsetValue,
+      paid: subsetPaid,
+      due: Math.max(0, subsetValue - subsetPaid)
     };
     const summaryStats = {
       totalHolders: totalShareholders,
@@ -307,14 +323,17 @@ export default function AdminLedger() {
       bookedCount
     };
 
-    // Sort active view data for print matching
-    const printFriendlyShareholders = [...sorted];
+    const reportLabel =
+      printFilter === 'fully_paid' ? 'Fully Paid' :
+      printFilter === 'partial' ? 'Partial Paid' :
+      printFilter === 'booked' ? 'Booked' : undefined;
 
     const html = buildPrintableLedgerHTML({
       shareholders: printFriendlyShareholders,
       directors: selectedDirectors,
       totals,
-      summaryStats
+      summaryStats,
+      reportLabel
     });
 
     const w = window.open('', '_blank', 'width=1100,height=800');
@@ -346,6 +365,8 @@ export default function AdminLedger() {
       // Auto pre-select top directors (up to 3)
       setSelectedDirectorIds(directors.slice(0, 3).map(d => d.id));
     }
+    // Start from the currently active on-screen filter
+    setPrintFilter(statusFilter);
     setDialogOpen(true);
   };
 
@@ -380,6 +401,31 @@ export default function AdminLedger() {
             </DialogHeader>
             
             <div className="space-y-4 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Report Type — কাদের রিপোর্ট বের করবেন?</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {([
+                    { key: 'all', label: 'All', count: totalShareholders, cls: 'border-border text-foreground' },
+                    { key: 'fully_paid', label: 'Fully Paid', count: fullyPaidCount, cls: 'border-emerald-500/40 text-emerald-700' },
+                    { key: 'partial', label: 'Partial', count: partialCount, cls: 'border-blue-500/40 text-blue-700' },
+                    { key: 'booked', label: 'Booked', count: bookedCount, cls: 'border-amber-500/40 text-amber-700' },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setPrintFilter(opt.key)}
+                      className={`px-3 py-2 rounded-lg border text-xs font-bold transition-all ${
+                        printFilter === opt.key
+                          ? `${opt.cls} bg-muted/60 ring-2 ring-primary/40`
+                          : 'border-border text-muted-foreground hover:bg-muted/40'
+                      }`}
+                    >
+                      {opt.label}
+                      <span className="block text-[10px] font-semibold opacity-70 mt-0.5">{opt.count} জন</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select Signatures</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {directors.map(d => (
