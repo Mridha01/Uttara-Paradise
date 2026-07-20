@@ -36,7 +36,7 @@ function buildPrintableHTML(opts: {
 
   const sigCols = dirs.map(d => `
     <td style="width:${100 / dirs.length}%; text-align:center; vertical-align:bottom; padding:0 6px;">
-      <div style="height:56px; border-bottom:2px solid #9ca3af; display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px;">
+      <div style="height:56px; max-width:150px; margin:0 auto; border-bottom:1.5px solid #9ca3af; display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px;">
         ${d.signature_url ? `<img src="${d.signature_url}" alt="" style="max-height:48px; max-width:100%; object-fit:contain;" />` : ''}
       </div>
       <p style="font-size:11px; font-weight:600; color:#1f2937; margin:6px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${d.name || '—'}</p>
@@ -274,7 +274,7 @@ export default function PaymentReceipt({ payment, shareholder, directors, open, 
               <div className={`grid gap-3 ${selectedDirectors.length <= 3 ? 'grid-cols-3' : selectedDirectors.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-5'}`}>
                 {selectedDirectors.map(d => (
                   <div key={d.id} className="text-center">
-                    <div className="h-14 border-b-2 border-neutral-400 flex items-end justify-center pb-1">
+                    <div className="h-14 max-w-[150px] mx-auto border-b border-neutral-400 flex items-end justify-center pb-1">
                       {d.signature_url ? <img src={d.signature_url} alt="" className="max-h-12 max-w-full object-contain" /> : null}
                     </div>
                     <p className="text-[11px] font-semibold text-neutral-800 mt-1 truncate">{d.name || '—'}</p>
