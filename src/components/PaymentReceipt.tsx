@@ -15,6 +15,9 @@ interface Props {
   totalShare?: number;
 }
 
+/** Strip characters that are invalid in Windows/Mac file names so the "Save PDF" dialog gets a clean suggested name. */
+const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim();
+
 const numberToWordsBn = (n: number): string => {
   if (n >= 10000000) return `${(n / 10000000).toFixed(2).replace(/\.00$/, '')} কোটি টাকা`;
   if (n >= 100000) return `${(n / 100000).toFixed(2).replace(/\.00$/, '')} লক্ষ টাকা`;
@@ -34,6 +37,11 @@ function buildPrintableHTML(opts: {
   const { payment, shareholder, directors, balancePaid, balanceShare, due } = opts;
   const dirs = directors;
 
+  const receiptNo = payment.receipt_no || `UV-${payment.id.slice(0, 8).toUpperCase()}`;
+  const dateStr = new Date(payment.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  // Shown as the browser tab title AND used as the default "Save PDF" file name — shareholder name first, then receipt no & date.
+  const docTitle = sanitizeFileName(`${shareholder.name} - Receipt ${receiptNo} - ${dateStr}`);
+
   const sigCols = dirs.map(d => `
     <td style="width:${100 / dirs.length}%; text-align:center; vertical-align:bottom; padding:0 6px;">
       <div style="height:56px; max-width:150px; margin:0 auto; border-bottom:1.5px solid #9ca3af; display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px;">
@@ -46,7 +54,7 @@ function buildPrintableHTML(opts: {
   return `<!doctype html>
 <html><head>
 <meta charset="utf-8" />
-<title>Receipt ${payment.receipt_no || payment.id.slice(0, 8)}</title>
+<title>${docTitle}</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin:0; padding:0; background:#fff; color:#0a0a0a; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
