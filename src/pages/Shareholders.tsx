@@ -258,7 +258,7 @@ export default function Shareholders() {
                     <div className="space-y-1.5"><Label className="text-foreground/80">Address</Label><Input className="bg-muted/50" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} /></div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5"><Label className="text-foreground/80">Booking Date</Label><Input className="bg-muted/50" type="date" value={form.booking_date} onChange={e => setForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
-                      <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} max={10} value={form.num_shares} onChange={e => setForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
+                      <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} value={form.num_shares} onChange={e => setForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
                     </div>
                     {/* Admin Only Field */}
                     <div className="space-y-3 bg-primary/5 p-3 rounded-lg border border-primary/10">
@@ -501,7 +501,7 @@ export default function Shareholders() {
             <div className="space-y-1.5"><Label className="text-foreground/80">Address</Label><Input className="bg-muted/50" value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} /></div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5"><Label className="text-foreground/80">Booking Date</Label><Input className="bg-muted/50" type="date" value={editForm.booking_date} onChange={e => setEditForm(p => ({ ...p, booking_date: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} max={10} value={editForm.num_shares} onChange={e => setEditForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-foreground/80">Number of Shares</Label><Input className="bg-muted/50" type="number" min={1} value={editForm.num_shares} onChange={e => setEditForm(p => ({ ...p, num_shares: e.target.value }))} /></div>
             </div>
             {/* Admin Only Field */}
             <div className="space-y-3 bg-primary/5 p-3 rounded-lg border border-primary/10">
