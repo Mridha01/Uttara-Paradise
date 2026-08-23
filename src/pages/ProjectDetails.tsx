@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { TOTAL_LAND_COST, TARGET_SHAREHOLDERS, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT, INSTALLMENT_AMOUNT, INSTALLMENT_MONTHS, formatBdtBangla } from '@/types';
+import { TARGET_SHAREHOLDERS, TOTAL_SHARE_AMOUNT, MAX_BOOKING_AMOUNT, INSTALLMENT_AMOUNT, INSTALLMENT_MONTHS, formatBdtBangla } from '@/types';
 import { toast } from 'sonner';
 
 const DEFAULTS: Record<string, any> = {
@@ -32,9 +32,11 @@ export default function ProjectDetails() {
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const landPrice = Number(settings.land_price_total) || TOTAL_LAND_COST;
   const target = Number(settings.target_shareholders) || TARGET_SHAREHOLDERS;
   const sharePrice = Number(settings.share_price) || TOTAL_SHARE_AMOUNT;
+  // Total land cost is always derived (shareholders × price per share), never entered separately,
+  // so it can never drift out of sync with the shareholder count / share price.
+  const landPrice = target * sharePrice;
   const bookingMax = Number(settings.booking_max) || MAX_BOOKING_AMOUNT;
   const instAmount = Number(settings.installment_amount) || INSTALLMENT_AMOUNT;
   const instMonths = Number(settings.installment_months) || INSTALLMENT_MONTHS;
@@ -48,7 +50,6 @@ export default function ProjectDetails() {
   const timeline = useSection<typeof DEFAULTS.timeline>('timeline', projectContent);
 
   const [form, setForm] = useState({
-    land_price_total: String(landPrice),
     target_shareholders: String(target),
     share_price: String(sharePrice),
     booking_max: String(bookingMax),
@@ -67,7 +68,6 @@ export default function ProjectDetails() {
 
   const openEdit = () => {
     setForm({
-      land_price_total: String(landPrice),
       target_shareholders: String(target),
       share_price: String(sharePrice),
       booking_max: String(bookingMax),
@@ -80,7 +80,12 @@ export default function ProjectDetails() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await Promise.all(Object.entries(form).map(([k, v]) => updateSetting(k, v)));
+      // Keep land_price_total in the settings table in sync (derived), in case anything else reads it directly.
+      const computedLandPrice = (Number(form.target_shareholders) || 0) * (Number(form.share_price) || 0);
+      await Promise.all([
+        ...Object.entries(form).map(([k, v]) => updateSetting(k, v)),
+        updateSetting('land_price_total', String(computedLandPrice)),
+      ]);
       toast.success('Project settings updated!');
       setEditOpen(false);
     } catch { toast.error('Failed to update'); }
@@ -164,9 +169,9 @@ export default function ProjectDetails() {
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="space-y-2"><Label className="text-foreground/80">জমির মোট মূল্য (৳)</Label><Input type="number" className="bg-background/50 h-11 text-lg font-bold" value={form.land_price_total} onChange={e => setForm(p => ({ ...p, land_price_total: e.target.value }))} /><p className="text-xs text-muted-foreground font-medium bg-muted/50 inline-block px-2 py-1 rounded">{formatBdtBangla(Number(form.land_price_total) || 0)}</p></div>
-              <div className="space-y-2"><Label className="text-foreground/80">মোট শেয়ার সংখ্যা</Label><Input type="number" className="bg-background/50 h-11" value={form.target_shareholders} onChange={e => setForm(p => ({ ...p, target_shareholders: e.target.value }))} /></div>
+              <div className="space-y-2"><Label className="text-foreground/80">মোট শেয়ারহোল্ডার সংখ্যা</Label><Input type="number" className="bg-background/50 h-11" value={form.target_shareholders} onChange={e => setForm(p => ({ ...p, target_shareholders: e.target.value }))} /></div>
               <div className="space-y-2"><Label className="text-foreground/80">প্রতি শেয়ারের মূল্য (৳)</Label><Input type="number" className="bg-background/50 h-11" value={form.share_price} onChange={e => setForm(p => ({ ...p, share_price: e.target.value }))} /></div>
+              <div className="space-y-2"><Label className="text-foreground/80">জমির মোট মূল্য (৳) — অটো ক্যালকুলেটেড</Label><div className="h-11 flex items-center px-3 rounded-md border border-input bg-muted/30 text-lg font-bold">{formatBdtBangla((Number(form.target_shareholders) || 0) * (Number(form.share_price) || 0))}</div><p className="text-xs text-muted-foreground font-medium bg-muted/50 inline-block px-2 py-1 rounded">{form.target_shareholders} × {formatBdtBangla(Number(form.share_price) || 0)}</p></div>
               <div className="space-y-2"><Label className="text-foreground/80">বুকিং মানি (৳)</Label><Input type="number" className="bg-background/50 h-11 text-indigo-500 font-bold" value={form.booking_max} onChange={e => setForm(p => ({ ...p, booking_max: e.target.value }))} /></div>
               <div className="space-y-2"><Label className="text-foreground/80">মাসিক ইনস্টলমেন্ট (৳)</Label><Input type="number" className="bg-background/50 h-11 text-blue-500 font-bold" value={form.installment_amount} onChange={e => setForm(p => ({ ...p, installment_amount: e.target.value }))} /></div>
               <div className="space-y-2"><Label className="text-foreground/80">মোট মাস</Label><Input type="number" className="bg-background/50 h-11" value={form.installment_months} onChange={e => setForm(p => ({ ...p, installment_months: e.target.value }))} /></div>

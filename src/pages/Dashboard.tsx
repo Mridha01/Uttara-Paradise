@@ -1,7 +1,7 @@
 import { Users, CreditCard, CheckCircle2, TrendingUp, UserMinus, Banknote, FileText, UserCheck, Calendar, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { TARGET_SHAREHOLDERS, TOTAL_LAND_COST, formatBdtBangla } from '@/types';
+import { TARGET_SHAREHOLDERS, TOTAL_SHARE_AMOUNT, formatBdtBangla } from '@/types';
 import { PROJECT } from '@/config/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +14,9 @@ export default function Dashboard() {
   if (loading) return <div className="text-center py-12 text-muted-foreground">Loading...</div>;
 
   const target = Number(settings.target_shareholders) || TARGET_SHAREHOLDERS;
-  const landCost = Number(settings.land_price_total) || TOTAL_LAND_COST;
+  const sharePrice = Number(settings.share_price) || TOTAL_SHARE_AMOUNT;
+  // Total cost is always shareholders × price per share (e.g. 98 × ৳5.5 লক্ষ), never a separately stored figure.
+  const landCost = target * sharePrice;
 
   const totalShareholders = shareholders.length;
   const totalShares = shareholders.reduce((s, sh) => s + sh.num_shares, 0);

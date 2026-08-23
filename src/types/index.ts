@@ -1,3 +1,5 @@
+import { PROJECT } from '@/config/project';
+
 export type UserRole = 'admin' | 'shareholder' | 'director';
 
 export interface Shareholder {
@@ -134,10 +136,14 @@ export interface PrivateExpense {
 
 
 // Defaults — these are overridden at runtime by values from project_settings table
+// TARGET_SHAREHOLDERS is sourced from PROJECT.totalShareholders (src/config/project.ts)
+// so there is a single source of truth for the shareholder count across the app.
 export const TOTAL_SHARE_AMOUNT = 550000;
 export const MAX_BOOKING_AMOUNT = 50000;
-export const TARGET_SHAREHOLDERS = 91;
-export const TOTAL_LAND_COST = 45500000;
+export const TARGET_SHAREHOLDERS = PROJECT.totalShareholders;
+// Total land cost is always derived: shareholder count × price per share
+// (98 × ৳5.5 লক্ষ = ৳5.39 কোটি) — never hardcode this independently.
+export const TOTAL_LAND_COST = TARGET_SHAREHOLDERS * TOTAL_SHARE_AMOUNT;
 export const INSTALLMENT_AMOUNT = 5000;
 export const INSTALLMENT_MONTHS = 24;
 
