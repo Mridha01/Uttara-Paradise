@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, Copy, ExternalLink, ShieldCheck, CheckCircle2, User } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, CreditCard, Image as ImageIcon, Copy, ExternalLink, ShieldCheck, CheckCircle2, User, Download } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { INSTALLMENT_MONTHS, INSTALLMENT_AMOUNT } from '@/types';
@@ -201,6 +201,18 @@ export default function ShareholderDetail() {
                       <Badge variant="outline" className={`font-semibold ${p.type === 'booking' ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'}`}>
                         {p.type === 'booking' ? 'Booking Fund' : 'Remaining Installment'}
                       </Badge>
+                      {p.invoice_url && (
+                        <a
+                          href={p.invoice_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-colors"
+                          title="ইনভয়েস দেখুন / ডাউনলোড করুন"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      )}
                       {isAdmin && p.screenshot_url && (
                         <div className="p-1.5 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors" title="View Slip">
                           <ImageIcon className="w-4 h-4" />

@@ -28,6 +28,8 @@ export interface Payment {
   screenshot_url: string;
   receipt_no?: string | null;
   notes?: string;
+  /** Admin-uploaded invoice/receipt file (PDF or image). Shareholders can only view/download this — never generate it themselves. */
+  invoice_url?: string | null;
   created_at: string;
 }
 

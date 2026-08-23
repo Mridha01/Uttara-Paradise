@@ -44,8 +44,11 @@ export default function Payments() {
   const [editNotes, setEditNotes] = useState('');
   const [editScreenshotFile, setEditScreenshotFile] = useState<File | null>(null);
   const [editPreviewUrl, setEditPreviewUrl] = useState('');
+  const [editInvoiceFile, setEditInvoiceFile] = useState<File | null>(null);
+  const [editInvoiceUrl, setEditInvoiceUrl] = useState('');
   const [editSubmitting, setEditSubmitting] = useState(false);
   const editFileRef = useRef<HTMLInputElement>(null);
+  const editInvoiceFileRef = useRef<HTMLInputElement>(null);
 
   // ── Detail & delete state ──────────────────────────────────────────────────
   const [detailPayment, setDetailPayment] = useState<string | null>(null);
@@ -65,6 +68,12 @@ export default function Payments() {
     if (!file) return;
     setEditScreenshotFile(file);
     setEditPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleEditInvoiceFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditInvoiceFile(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,6 +121,8 @@ export default function Payments() {
     setEditNotes(p.notes || '');
     setEditPreviewUrl(p.screenshot_url || '');
     setEditScreenshotFile(null);
+    setEditInvoiceUrl(p.invoice_url || '');
+    setEditInvoiceFile(null);
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -135,12 +146,17 @@ export default function Payments() {
       if (editScreenshotFile) {
         screenshotUrl = await uploadImage('payment-screenshots', editScreenshotFile, 'payments');
       }
+      let invoiceUrl = editInvoiceUrl;
+      if (editInvoiceFile) {
+        invoiceUrl = await uploadImage('payment-screenshots', editInvoiceFile, 'invoices');
+      }
       await updatePayment(editPayment.id, {
         amount: numAmount,
         date: editDate,
         type: editType,
         notes: editNotes,
         screenshot_url: screenshotUrl,
+        invoice_url: invoiceUrl,
       });
       setEditPayment(null);
       toast.success('Payment updated successfully!');
@@ -490,6 +506,34 @@ export default function Payments() {
                     >
                       <Upload className="w-5 h-5 text-amber-500" />
                       <span className="text-xs font-medium">Upload new slip (leave empty to keep existing)</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-foreground/80">Invoice (PDF/Image) — visible to this shareholder only</Label>
+                  <input ref={editInvoiceFileRef} type="file" accept="application/pdf,image/*" onChange={handleEditInvoiceFileChange} className="hidden" />
+                  {editInvoiceUrl && !editInvoiceFile && (
+                    <div className="flex items-center justify-between gap-2 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 mb-2">
+                      <a href={editInvoiceUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                        <FileText className="w-3.5 h-3.5" /> Current invoice uploaded — view
+                      </a>
+                      <button type="button" onClick={() => setEditInvoiceUrl('')} className="text-xs text-muted-foreground hover:text-rose-500">Remove</button>
+                    </div>
+                  )}
+                  {editInvoiceFile ? (
+                    <div className="flex items-center justify-between gap-2 p-3 rounded-xl border border-primary/30 bg-primary/5">
+                      <span className="text-xs font-medium text-foreground truncate flex items-center gap-1"><FileText className="w-3.5 h-3.5 flex-shrink-0" /> {editInvoiceFile.name}</span>
+                      <button type="button" onClick={() => setEditInvoiceFile(null)} className="text-xs text-muted-foreground hover:text-rose-500 flex-shrink-0">Cancel</button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => editInvoiceFileRef.current?.click()}
+                      className="w-full border-2 border-dashed border-primary/30 bg-primary/5 rounded-xl p-4 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Upload className="w-5 h-5 text-primary" />
+                      <span className="text-xs font-medium">{editInvoiceUrl ? 'Replace invoice file' : 'Upload invoice file'}</span>
                     </button>
                   )}
                 </div>

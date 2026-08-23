@@ -21,7 +21,7 @@ interface AppContextType {
   updateShareholder: (id: string, s: Partial<Shareholder>) => Promise<void>;
   deleteShareholder: (id: string) => Promise<void>;
   addPayment: (p: Omit<Payment, 'id' | 'created_at'>) => Promise<Payment | null>;
-  updatePayment: (id: string, updates: Partial<Pick<Payment, 'amount' | 'date' | 'type' | 'notes' | 'screenshot_url'>>) => Promise<void>;
+  updatePayment: (id: string, updates: Partial<Pick<Payment, 'amount' | 'date' | 'type' | 'notes' | 'screenshot_url' | 'invoice_url'>>) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
   addExpense: (e: Omit<Expense, 'id' | 'created_at'>) => Promise<void>;
   updateExpense: (id: string, e: Partial<Expense>) => Promise<void>;
@@ -266,7 +266,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── NEW: updatePayment ──────────────────────────────────────────────────────
   const updatePayment = useCallback(async (
     id: string,
-    updates: Partial<Pick<Payment, 'amount' | 'date' | 'type' | 'notes' | 'screenshot_url'>>
+    updates: Partial<Pick<Payment, 'amount' | 'date' | 'type' | 'notes' | 'screenshot_url' | 'invoice_url'>>
   ) => {
     const oldPayment = payments.find(p => p.id === id);
     if (!oldPayment) throw new Error('Payment not found');

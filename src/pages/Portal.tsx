@@ -1,6 +1,6 @@
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Building2, Phone, MapPin, Calendar, CreditCard, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
+import { Building2, Phone, MapPin, Calendar, CreditCard, CheckCircle2, XCircle, ShieldCheck, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -177,16 +177,29 @@ export default function Portal() {
             ) : (
               <div className="space-y-2">
                 {payments.map(p => (
-                  <button key={p.id} onClick={() => setSelectedPayment(p)} className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-left">
-                    <div className="flex items-center gap-3">
-                      <CreditCard className="w-4 h-4 text-muted-foreground" />
-                      <div>
+                  <div key={p.id} className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <button onClick={() => setSelectedPayment(p)} className="flex items-center gap-3 text-left flex-1 min-w-0">
+                      <CreditCard className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-card-foreground">৳{Number(p.amount).toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">{p.date}</p>
                       </div>
+                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'বুকিং' : 'বাকি পেমেন্ট'}</Badge>
+                      {p.invoice_url && (
+                        <a
+                          href={p.invoice_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-colors"
+                          title="ইনভয়েস দেখুন / ডাউনলোড করুন"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      )}
                     </div>
-                    <Badge variant="outline" className="text-xs">{p.type === 'booking' ? 'বুকিং' : 'বাকি পেমেন্ট'}</Badge>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
